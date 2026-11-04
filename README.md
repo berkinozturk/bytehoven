@@ -170,6 +170,10 @@ The sliders button in the top bar opens the mixer:
 
 The mix is saved in your browser only.
 
+### Today's symphony
+
+The round **record** button in the top bar records the stage and the sound into a video file, up to one minute long. Press it again to stop, and the file (`bytehoven-symphony-<date>-<time>.webm`, or `.mp4` in Safari) is downloaded. Nothing is uploaded anywhere. The score and the programme are not in the video, only the stage.
+
 ## 🛠 How it's built
 
 | | |
@@ -234,7 +238,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
   - [x] Chiptune arcade 👾 (synthesised, no samples)
   - [x] Lo-fi rainy room 🌧
 - [x] **Mixer**: who plays which kind of work, which events make a sound
-- [ ] **"Today's symphony"**: export a session as a short video/GIF with sound, ready to share
+- [x] **"Today's symphony"**: record the stage and its sound as a short video, ready to share
 - [ ] Codex and Gemini CLI support
 
 ## 🤝 Contributing

@@ -8,6 +8,7 @@ import { LiveSource } from './core/live';
 import { roleOf } from './core/mixer';
 import type { ChairId } from './core/route';
 import { MixerPanel, loadMix } from './ui/mixer';
+import { Recorder } from './ui/recorder';
 import { applyStatic, getLang, onLang, setLang, setVariant, t, type Lang } from './i18n';
 import { COMING, THEMES, chooseTheme, chosenTheme, type ThemeId } from './themes';
 import { Stage, type Seat } from './stage/stage';
@@ -89,6 +90,30 @@ async function main() {
   const feed = new Feed($('#feed'), who);
   const meter = new TensionMeter($('#gauge-fill'), $('#gauge-glow'), $('#tension-word'), $('#tension-spark'));
   const detail = new Detail($('#detail'));
+  // ---- "Today's symphony": record the stage and the sound to a video file
+  const recorder = new Recorder();
+  const recordBtn = $<HTMLButtonElement>('#record');
+  const recordTime = $('#record-time');
+  recordBtn.hidden = !recorder.supported;
+  let recordAudio: MediaStream | null = null;
+  recorder.onTick = (s) => {
+    recordBtn.classList.toggle('on', s !== null);
+    recordBtn.setAttribute('aria-pressed', String(s !== null));
+    recordBtn.dataset.i18nTitle = s === null ? 'top.record' : 'top.recordStop';
+    recordBtn.title = t(recordBtn.dataset.i18nTitle);
+    recordTime.textContent = s === null ? '' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  };
+  recordBtn.onclick = () => {
+    if (recorder.recording) return recorder.stop();
+    if (!recordAudio) {
+      // tap the final mix (after the limiter) into a stream the recorder can read
+      const dest = (Tone.getContext().rawContext as AudioContext).createMediaStreamDestination();
+      Tone.getDestination().connect(dest);
+      recordAudio = dest.stream;
+    }
+    recorder.start($<HTMLCanvasElement>('#stage canvas'), recordAudio);
+  };
+
   // ---- the mixer: who plays which work, which events sound
   const mixer = new MixerPanel($('#mixer'), MIX, (c) => `${agents.get(c)?.name ?? c} · ${t(`instrument.${agents.get(c)?.instrument ?? 'piano'}`)}`);
   mixer.onSilent = (kinds) => engine.setSilent(kinds);
@@ -462,6 +487,7 @@ async function main() {
     $('#start').classList.add('gone');
     stage.openCurtains(3.6);
     const untilDownbeat = await engine.startConcert();
+    recordBtn.disabled = false;
     if (live) return void setTimeout(() => sim.start(), untilDownbeat * 1000 + 300);
     setTimeout(
       () => {
