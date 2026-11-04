@@ -55,6 +55,8 @@ class Tail {
 
 interface Watched {
   session: LiveSession;
+  /** Full project path: used to start a part there, never sent to the page. */
+  cwd?: string;
   dir?: string;
   main?: Tail;
   subs: Map<string, { tail: Tail; agent: string }>;
@@ -111,6 +113,10 @@ export class SessionReader {
     return [...this.watched.values()].map((w) => w.session);
   }
 
+  cwdOf(id: string): string | undefined {
+    return this.watched.get(id)?.cwd;
+  }
+
   poll() {
     const seen = new Set<string>();
     for (const name of list(path.join(this.home, 'sessions'))) {
@@ -123,7 +129,7 @@ export class SessionReader {
       const folder = (typeof s.cwd === 'string' && path.basename(s.cwd)) || 'session';
       const w = this.watched.get(id);
       if (!w) {
-        const fresh: Watched = { session: { id, folder, status }, subs: new Map() };
+        const fresh: Watched = { session: { id, folder, status }, cwd: typeof s.cwd === 'string' ? s.cwd : undefined, subs: new Map() };
         this.watched.set(id, fresh);
         this.emit({ type: 'session', session: { ...fresh.session } });
         this.attach(fresh, true);

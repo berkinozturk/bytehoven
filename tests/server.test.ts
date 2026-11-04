@@ -115,3 +115,27 @@ test('an unanswered request times out with no decision, so Claude Code asks as u
   page.close();
   await s.close();
 });
+
+test('another website cannot hand out a task', async () => {
+  const s = await start();
+  let called = false;
+  s.hub.onTask = () => ((called = true), { id: 'x' });
+  const r = await request(s.port, 'POST', '/__live/task', { host: s.host, origin: 'https://evil.example' }, { session: 's', task: 'rm -rf' });
+  assert.equal(r.status, 403);
+  assert.equal(called, false);
+  await s.close();
+});
+
+test('the page can hand a session a new part', async () => {
+  const s = await start();
+  const got: string[] = [];
+  s.hub.onTask = (session, task) => (got.push(session, task), { id: 'part-1' });
+  const r = await request(s.port, 'POST', '/__live/task', { host: s.host, origin: `http://${s.host}` }, { session: 'sess-1', task: 'add a line' });
+  assert.equal(r.status, 202);
+  assert.deepEqual(JSON.parse(r.body), { id: 'part-1' });
+  assert.deepEqual(got, ['sess-1', 'add a line']);
+  s.hub.onTask = () => ({ error: 'busy' });
+  const busy = await request(s.port, 'POST', '/__live/task', { host: s.host, origin: `http://${s.host}` }, { session: 'sess-1', task: 'again' });
+  assert.equal(busy.status, 409);
+  await s.close();
+});

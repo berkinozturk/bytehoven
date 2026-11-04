@@ -1302,3 +1302,7 @@ html.live .modes [data-mode='live']::before {
   color: var(--gold-2);
   font-weight: 600;
 }
+
+.detail .note.flash {
+  color: var(--gold-2);
+}

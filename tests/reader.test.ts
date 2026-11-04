@@ -84,3 +84,11 @@ test('a broken sessions folder never throws', () => {
   const missing = new SessionReader(path.join(f.home, 'nope'), () => {});
   assert.doesNotThrow(() => missing.poll());
 });
+
+test('the full project path stays on the server', () => {
+  const f = fixture();
+  f.reader.poll();
+  assert.equal(f.reader.cwdOf(f.sid), '/Users/me/shop');
+  assert.ok(!JSON.stringify(f.msgs).includes('/Users/me'), 'pages only ever see the folder name');
+  assert.equal(f.reader.cwdOf('unknown'), undefined);
+});

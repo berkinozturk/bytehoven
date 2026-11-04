@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { Plugin } from 'vite';
+import { Conductor } from './conduct.ts';
 import { LiveHub } from './hub.ts';
 import { SessionReader } from './reader.ts';
 
@@ -24,6 +25,11 @@ export function live(): Plugin {
       const home = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
       const reader = new SessionReader(home, (m) => hub.publish(m));
       hub.sessions = () => reader.sessions();
+      const conductor = new Conductor({ onEnd: (child) => hub.send({ type: 'part_end', child }) });
+      hub.onTask = (session, task) => {
+        const cwd = reader.cwdOf(session);
+        return cwd ? conductor.start({ cwd, task }) : { error: 'unknown' };
+      };
       reader.start();
       server.middlewares.use((req, res, next) => hub.handle(req, res, next));
       server.httpServer?.on('close', () => {

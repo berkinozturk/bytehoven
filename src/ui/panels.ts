@@ -152,8 +152,10 @@ export interface DetailData {
 /** The musician detail drawer. */
 export class Detail {
   current: string | null = null;
-  /** Show the "hand them a new part" box (demo only for now). */
+  /** Show the "hand them a new part" box. */
   tasks = true;
+  /** What the note under the task box says. */
+  taskNote = 'detail.demoNote';
   onVolume: (id: string, db: number) => void = () => {};
   onMute: (id: string, m: boolean) => void = () => {};
   onTask: (id: string, text: string) => void = () => {};
@@ -189,7 +191,7 @@ export class Detail {
         this.tasks
           ? `<h3>${esc(t('detail.task', { name: d.info.name }))}</h3>
       <textarea class="task" placeholder="${esc(t('detail.taskPh'))}"></textarea>
-      <div class="note">${esc(t('detail.demoNote'))}</div>
+      <div class="note">${esc(t(this.taskNote))}</div>
       <button class="btn gold send">${esc(t('detail.send'))}</button>`
           : ''
       }
@@ -210,6 +212,18 @@ export class Detail {
       this.onTask(d.info.id, ta.value);
       ta.value = '';
     };
+  }
+
+  /** Replace the note under the task box for a moment (e.g. "part handed over"). */
+  flash(text: string) {
+    const note = this.el.querySelector<HTMLElement>('.note');
+    if (!note) return;
+    note.textContent = text;
+    note.classList.add('flash');
+    setTimeout(() => {
+      note.classList.remove('flash');
+      note.textContent = t(this.taskNote);
+    }, 5000);
   }
 
   refresh(d: DetailData) {

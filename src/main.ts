@@ -180,8 +180,13 @@ async function main() {
     mutes.set(id, m);
     engine.setVoiceMuted(id, m);
   };
-  detail.tasks = !LIVE; // handing out parts arrives with conducting
-  detail.onTask = (id) => {
+  if (live) {
+    detail.taskNote = 'detail.liveNote';
+    detail.onTask = async (id, text) => {
+      const r = await live.task(id, text);
+      detail.flash(t(r === 'ok' ? 'detail.taskSent' : r === 'busy' ? 'detail.taskBusy' : 'detail.taskFailed'));
+    };
+  } else detail.onTask = (id) => {
     // Demo: the conductor hands over a new part; the musician starts reading it.
     const ev = makeEvent(id, 'file_read', { tool: 'Read', target: 'new-part.md' });
     sim.emit('event', ev);

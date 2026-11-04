@@ -25,7 +25,9 @@ type Msg =
   | { type: 'session_end'; id: string }
   | { type: 'event'; session: string; agent?: string; ev: { kind: AgentEventKind; tool?: string; target?: string; child?: string } }
   | ({ type: 'permission' } & Permission)
-  | { type: 'permission_end'; id: number; approved?: boolean };
+  | { type: 'permission_end'; id: number; approved?: boolean }
+  | { type: 'part'; session: string; child: string }
+  | { type: 'part_end'; child: string };
 
 interface Session {
   id: string;
@@ -62,6 +64,10 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
   private freed = new Map<string, number>();
   /** musician id → who sits there, so a leaving musician is named */
   private infos = new Map<string, AgentInfo>();
+  /** A part handed out by the conductor: its session id → the second chair playing it */
+  private parts = new Map<string, string>();
+  /** Parts started but not seen yet: session id → the chair that was handed the part */
+  private pendingParts = new Map<string, string>();
   private source: EventSource | null = null;
   private paused = false;
   private connected = false;
@@ -102,6 +108,30 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     this.emit('event', makeEvent(agentId, 'permission_resolved', { approved }));
   }
 
+  /** The conductor hands a musician a new part (a `claude -p` run in its folder). */
+  async task(musicianId: string, text: string): Promise<'ok' | 'busy' | 'error'> {
+    const session = [...this.seats].find(([, m]) => m === musicianId)?.[0] ?? [...this.parts].find(([, m]) => m === musicianId)?.[0];
+    if (!session) return 'error';
+    try {
+      const r = await fetch('/__live/task', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ session, task: text }) });
+      return r.status === 202 ? 'ok' : r.status === 409 ? 'busy' : 'error';
+    } catch {
+      return 'error';
+    }
+  }
+
+  /** The musician playing a part session, seating it as a second chair the first time. */
+  private partFor(session: string): string | null {
+    const have = this.parts.get(session);
+    if (have) return have;
+    const chair = this.pendingParts.get(session);
+    if (!chair) return null;
+    this.pendingParts.delete(session);
+    const kid = this.join(chair, session, 'part');
+    if (kid) this.parts.set(session, kid);
+    return kid;
+  }
+
   private report() {
     // A static build has no live server: the stream fails before it ever opens.
     this.emit('status', { connected: this.connected, unavailable: !this.connected && this.failures > 2, sessions: this.seats.size });
@@ -116,6 +146,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
         this.report();
         break;
       case 'session': {
+        if (this.partFor(m.session.id)) break;
         const known = this.seats.has(m.session.id);
         const chair = this.seat(m.session, true);
         const before = this.statuses.get(m.session.id);
@@ -125,6 +156,13 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
         break;
       }
       case 'session_end': {
+        const part = this.parts.get(m.id);
+        if (part) {
+          this.parts.delete(m.id);
+          this.children.get(this.infos.get(part)?.parentId ?? '')?.delete(m.id);
+          this.leave(part);
+          break;
+        }
         const chair = this.seats.get(m.id);
         if (!chair) break;
         for (const kid of this.children.get(chair)?.values() ?? []) this.leave(kid);
@@ -141,6 +179,14 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
         break;
       case 'permission':
         this.ask(m);
+        break;
+      case 'part': {
+        const chair = this.seats.get(m.session) ?? this.infos.get(this.parts.get(m.session) ?? '')?.parentId;
+        if (chair) this.pendingParts.set(m.child, chair);
+        break;
+      }
+      case 'part_end':
+        this.pendingParts.delete(m.child); // it never got going
         break;
       case 'permission_end': {
         // answered in Claude Code itself, or timed out
@@ -177,10 +223,15 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
   }
 
   private onEvent(m: Extract<Msg, { type: 'event' }>) {
+    const part = this.partFor(m.session);
+    if (part) {
+      if (this.paused || this.waiting.has(part) || m.ev.kind === 'subagent_join' || m.ev.kind === 'subagent_leave') return;
+      return this.send(part, m.ev.kind, { tool: m.ev.tool, target: m.ev.target });
+    }
     const chair = this.seats.get(m.session) ?? this.seat({ id: m.session, folder: 'session', status: 'busy' }, true);
     if (!chair || this.paused) return;
     const { kind, tool, target, child } = m.ev;
-    if (kind === 'subagent_join' && child) return this.join(chair, child, target);
+    if (kind === 'subagent_join' && child) return void this.join(chair, child, target);
     if (kind === 'subagent_leave' && child) {
       const kid = this.children.get(chair)?.get(child);
       if (kid) {
@@ -194,10 +245,11 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     this.send(who, kind, { tool, target });
   }
 
-  private join(chair: string, call: string, kind?: string) {
+  /** Seat a second chair next to `chair`. Returns its id, or null if that chair is taken. */
+  private join(chair: string, call: string, kind?: string): string | null {
     const kids = this.children.get(chair) ?? new Map<string, string>();
     this.children.set(chair, kids);
-    if (kids.size >= 1) return; // one second chair per musician fits on stage
+    if (kids.size >= 1) return null; // one second chair per musician fits on stage
     const parent = CHAIRS.find((c) => c.id === chair)!;
     const id = `${chair}-2`;
     kids.set(call, id);
@@ -211,9 +263,15 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     };
     this.infos.set(id, info);
     this.send(chair, 'subagent_join', { child: info, tool: 'Agent', target: kind });
+    return id;
   }
 
   private ask(p: Permission) {
+    const part = this.partFor(p.session);
+    if (part) {
+      this.waiting.set(part, p.id);
+      return this.emit('event', makeEvent(part, 'permission_request', { tool: p.tool, target: p.target }));
+    }
     // e.g. a `claude -p` run that never shows up in the session list
     const chair = this.seats.get(p.session) ?? this.seat({ id: p.session, folder: p.folder ?? 'session', status: 'busy' }, true);
     if (!chair) return;

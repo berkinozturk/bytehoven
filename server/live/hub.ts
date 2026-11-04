@@ -7,6 +7,7 @@ import type { LiveMsg, LiveSession } from './reader.ts';
  *   GET  /__live/events    the page's event stream (Server-Sent Events)
  *   POST /__live/hook      from Bytehoven's Claude Code hook (needs the local token)
  *   POST /__live/decision  Approve / Deny from the page (same origin only)
+ *   POST /__live/task      the conductor hands a session a new part (same origin only)
  *
  * Guards: the Host header must be this machine at this port (stops DNS rebinding),
  * the decision endpoint only accepts the page's own origin (stops other websites),
@@ -17,7 +18,10 @@ export type PageMsg =
   | LiveMsg
   | { type: 'hello'; sessions: LiveSession[]; permissions: Permission[] }
   | ({ type: 'permission' } & Permission)
-  | { type: 'permission_end'; id: number; approved?: boolean };
+  | { type: 'permission_end'; id: number; approved?: boolean }
+  /** A part handed out from the page: `child` is the new run's session id. */
+  | { type: 'part'; session: string; child: string }
+  | { type: 'part_end'; child: string };
 
 export interface Permission {
   id: number;
@@ -35,13 +39,15 @@ interface Waiting {
   timer: NodeJS.Timeout;
 }
 
-const MAX_BODY = 4096;
+const MAX_BODY = 16_384; // a 4000-character task in any script, plus JSON
 
 const short = (v: unknown, n = 80) => (typeof v === 'string' && v ? v.slice(0, n) : undefined);
 
 export class LiveHub {
   port = 0;
   sessions: () => LiveSession[] = () => [];
+  /** Starts a part for a session; set by the plugin. */
+  onTask: ((session: string, task: string) => { id: string } | { error: string }) | null = null;
   private token: string;
   private timeoutMs: number;
   private pages = new Set<ServerResponse>();
@@ -90,6 +96,16 @@ export class LiveHub {
         res.writeHead(204).end();
       });
     }
+    if (req.method === 'POST' && url === '/__live/task') {
+      if (origin !== self || !isJson(req) || !this.onTask) return deny(res);
+      return readBody(req, res, (b) => {
+        const session = short(b.session);
+        if (!session || typeof b.task !== 'string') return void res.writeHead(400).end();
+        const r = this.onTask!(session, b.task);
+        if ('id' in r) this.send({ type: 'part', session, child: r.id });
+        res.writeHead('id' in r ? 202 : r.error === 'busy' ? 409 : 400, { 'content-type': 'application/json' }).end(JSON.stringify(r));
+      });
+    }
     if (req.method === 'POST' && url === '/__live/hook') {
       if (req.headers['x-bytehoven-token'] !== this.token || !isJson(req)) return deny(res);
       return readBody(req, res, (b) => this.onHook(b, req, res));
@@ -127,7 +143,8 @@ export class LiveHub {
     this.send({ type: 'permission_end', id: w.permission.id, approved: decision === null ? undefined : decision === 'allow' });
   }
 
-  private send(msg: PageMsg) {
+  /** Tell every open page (e.g. a part has ended). */
+  send(msg: PageMsg) {
     for (const p of this.pages) write(p, msg);
   }
 }

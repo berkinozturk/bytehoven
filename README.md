@@ -114,6 +114,15 @@ Then start a new Claude Code session. When it asks for permission, the musician 
 
 The hook is documented for the terminal and VS Code. Whether the Claude desktop app runs user hooks isn't documented, so try it there before relying on it.
 
+### Conducting: hand a musician a new part
+
+In live mode, click a musician and write a task in **New part**. Bytehoven starts a one-off `claude -p` in that session's project folder, and the musician's second chair walks on stage to play it; when it needs permission, you get the fermata.
+
+- `claude` is started with an argument list and the task goes to its **stdin**, so nothing you type is ever parsed as a shell command.
+- Reading, searching and editing files are allowed. Other tools follow your Claude Code permission settings, and anything that asks for permission comes to you as a fermata.
+- `rm`, `git push` and `curl` are always blocked.
+- One part at a time. The task text and the model's answer are never logged or stored.
+
 ### Next to Claude Code
 
 Bytehoven fits a narrow side panel: below 720px wide it switches to a compact layout (stage on top, score and programme underneath, the permission card docked at the bottom of the stage, the musician drawer as an overlay).
@@ -184,8 +193,8 @@ The script trims the silence before each attack, caps the length with a fade, pe
   - [ ] choose which session sits in which chair (by folder), instead of first come, first seated
   - [ ] on page load, replay the last few events so the score never starts empty
 - [ ] **Box office**: today's tokens per musician, de-duplicated by message id, with cache reads shown separately (they're re-read context, not new work)
-- [ ] **Conducting**: hand a musician a new part (`claude -p`, prompt via stdin, narrow tool permissions, `rm` / `git push` / `curl` blocked by default)
-  - the conductor plans first: one tool-less `claude -p --json-schema` call returns who plays what; the plan is validated, and nothing starts if it's malformed. A dry-run shows the plan without running it
+- [x] **Conducting**: hand a musician a new part (`claude -p`, prompt via stdin, narrow tool permissions, `rm` / `git push` / `curl` blocked)
+  - [ ] next: the conductor plans first: one tool-less `claude -p --json-schema` call returns who plays what; the plan is validated, and nothing starts if it's malformed. A dry-run shows the plan without running it
 - [ ] **Themes**, each with its own stage and sound: Jazz club 🎷, Chiptune arcade 👾, Lo-fi rainy room 🌧
 - [ ] **Mixer**: which event plays which sound, instrument assignment per role
 - [ ] **"Today's symphony"**: export a session as a short video/GIF with sound, ready to share

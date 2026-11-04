@@ -93,7 +93,11 @@
     "taskPh": "Görevi anlatın…",
     "send": "Partisyonu ver",
     "demoNote": "Demo modu: partisyon sahnede verilir ama hiçbir ajan çalıştırılmaz.",
-    "close": "Kapat"
+    "close": "Kapat",
+    "liveNote": "Bu oturumun klasöründe claude -p çalıştırır. Dosya okuma, arama ve düzenleme serbest; diğer araçlar Claude Code izin ayarlarına uyar ve izin isteyen her şey burada fermataya dönüşür. rm, git push ve curl her zaman yasak.",
+    "taskSent": "Bölüm verildi. İkinci sandalyeyi izle.",
+    "taskBusy": "Başka bir bölüm hâlâ çalıyor. Bitince tekrar dene.",
+    "taskFailed": "Bölüm başlatılamadı. claude komutu kurulu mu?"
   },
   "ago": {
     "now": "şimdi",

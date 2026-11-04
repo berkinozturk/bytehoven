@@ -93,7 +93,11 @@
     "taskPh": "Describe the task…",
     "send": "Hand over the score",
     "demoNote": "Demo mode: the score is handed over on stage, but no agent is run.",
-    "close": "Close"
+    "close": "Close",
+    "liveNote": "Runs claude -p in this session's folder. Reading, searching and editing files are allowed; other tools follow your Claude Code permission settings, and anything that asks for permission becomes a fermata here. rm, git push and curl are always blocked.",
+    "taskSent": "Part handed over. Watch the second chair.",
+    "taskBusy": "Another part is still playing. Try again when it finishes.",
+    "taskFailed": "Couldn't start the part. Is the claude command installed?"
   },
   "ago": {
     "now": "now",
