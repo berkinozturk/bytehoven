@@ -35,7 +35,7 @@ const WRITE = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
 const SHELL = new Set(['Bash', 'PowerShell']);
 const AGENT = new Set(['Agent', 'Task']);
 
-const basename = (p: unknown) => (typeof p === 'string' && p ? p.split(/[\\/]/).filter(Boolean).pop() : undefined);
+export const basename = (p: unknown) => (typeof p === 'string' && p ? p.split(/[\\/]/).filter(Boolean).pop() : undefined);
 
 const TEST_RUNNERS = new Set(['vitest', 'jest', 'pytest', 'mocha', 'playwright', 'phpunit', 'rspec']);
 const PKG = new Set(['npm', 'pnpm', 'yarn', 'bun']);
@@ -59,7 +59,7 @@ export function commandTarget(cmd: string): string | undefined {
   return undefined;
 }
 
-const isTest = (target?: string) => !!target && (target.endsWith(' test') || target === 'node --test' || TEST_RUNNERS.has(target));
+export const isTest = (target?: string) => !!target && (target.endsWith(' test') || target === 'node --test' || TEST_RUNNERS.has(target));
 
 type Item = { type?: unknown; id?: unknown; name?: unknown; input?: unknown; tool_use_id?: unknown; is_error?: unknown };
 

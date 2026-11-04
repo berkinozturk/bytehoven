@@ -6,6 +6,7 @@ import type { Plugin } from 'vite';
 import { Conductor } from './conduct.ts';
 import { BoxOffice } from './boxoffice.ts';
 import { LiveHub } from './hub.ts';
+import { CodexReader, GeminiReader, codexHome, geminiHome } from './others.ts';
 import { SessionReader } from './reader.ts';
 
 /** Adds live mode to the dev server: reads Claude Code sessions, serves /__live/*. */
@@ -24,7 +25,15 @@ export function live(): Plugin {
       const hub = new LiveHub({ token });
       hub.port = port;
       const home = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
-      const reader = new SessionReader(home, (m) => hub.publish(m));
+      const claude = new SessionReader(home, (m) => hub.publish(m));
+      // Codex and Gemini CLI sessions play in the same orchestra
+      const others = [new CodexReader(codexHome(), (m) => hub.publish(m)), new GeminiReader(geminiHome(), (m) => hub.publish(m))];
+      const reader = {
+        sessions: () => [claude, ...others].flatMap((r) => r.sessions()),
+        cwdOf: (id: string) => [claude, ...others].map((r) => r.cwdOf(id)).find(Boolean),
+        start: () => [claude, ...others].forEach((r) => r.start()),
+        stop: () => [claude, ...others].forEach((r) => r.stop()),
+      };
       hub.sessions = () => reader.sessions();
       const box = new BoxOffice(home);
       hub.takings = () => box.today();
