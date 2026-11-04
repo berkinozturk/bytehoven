@@ -4,6 +4,7 @@ import { AudioEngine } from './audio/engine';
 import type { AgentEvent, AgentInfo } from './core/events';
 import { makeEvent } from './core/events';
 import { DemoSimulator, DEMO_AGENTS } from './core/simulator';
+import { LiveSource } from './core/live';
 import { applyStatic, getLang, onLang, setLang, t, type Lang } from './i18n';
 import { Stage, type Seat } from './stage/stage';
 import { W } from './stage/hall';
@@ -22,6 +23,33 @@ const SEATS: Record<string, Seat> = {
   otto: { x: 302, y: 129, color: 0xff9b5a, look: { skin: 0, hair: 'blonde', hairStyle: 'curly', outfit: 'tux', glasses: true } },
 };
 
+/** Second chairs in live mode sit next to their musician (violinists, like Leo). */
+const SECOND_CHAIRS: Record<string, { x: number; y: number }> = {
+  'ines-2': { x: 46, y: 192 },
+  'clara-2': { x: 112, y: 130 },
+  'otto-2': { x: 268, y: 131 },
+  'mira-2': { x: 104, y: 194 },
+  'bruno-2': { x: 222, y: 192 },
+};
+function secondChair(info: AgentInfo): Seat {
+  const parent = SEATS[info.parentId ?? ''] ?? SEATS.leo;
+  const at = SECOND_CHAIRS[info.id] ?? { x: parent.x - 30, y: parent.y + 6 };
+  return { ...SEATS.leo, ...at, color: parent.color };
+}
+
+/** What the page needs from an event source: the demo simulator or live Claude Code sessions. */
+interface Source {
+  on(type: 'event', fn: (e: AgentEvent) => void): () => void;
+  emit(type: 'event', e: AgentEvent): void;
+  start(): void;
+  resolvePermission(agentId: string, approved: boolean): void;
+  setPaused(p: boolean): void;
+  readonly isRunning: boolean;
+}
+
+const LIVE = new URLSearchParams(location.search).has('live');
+if (LIVE) document.querySelector('[data-i18n="start.note"]')?.setAttribute('data-i18n', 'start.liveNote');
+
 const pan = (x: number) => Math.max(-0.85, Math.min(0.85, ((x - W / 2) / (W / 2)) * 0.95));
 // Query inside #app rather than `document`: the app can move into a pop-out window.
 const appRoot = document.getElementById('app')!;
@@ -31,7 +59,9 @@ async function main() {
   applyStatic();
   const engine = new AudioEngine();
   const stage = new Stage();
-  const sim = new DemoSimulator();
+  const live = LIVE ? new LiveSource() : null;
+  const sim: Source = live ?? new DemoSimulator();
+  document.documentElement.classList.toggle('live', LIVE);
   const agents = new Map<string, AgentInfo>();
   const recent = new Map<string, AgentEvent[]>();
   const volumes = new Map<string, number>();
@@ -52,16 +82,19 @@ async function main() {
 
   const addAgent = (info: AgentInfo, walkIn = false) => {
     agents.set(info.id, info);
-    const seat = SEATS[info.id];
+    const seat = (SEATS[info.id] ??= secondChair(info));
     stage.addMusician(info, seat, { walkIn });
     engine.addVoice(info.id, info.instrument, pan(seat.x));
     score.addRow(info, seat.color);
   };
-  for (const a of DEMO_AGENTS) addAgent(a);
+  if (!LIVE) for (const a of DEMO_AGENTS) addAgent(a);
 
   // ---- events flow: simulator → (sound + stage + feed)
   sim.on('event', (ev) => {
-    if (ev.kind === 'subagent_join' && ev.child) addAgent(ev.child, true);
+    if (ev.kind === 'subagent_join' && ev.child) {
+      if (agents.has(ev.child.id)) return; // a chair being refilled before its musician left
+      addAgent(ev.child, !ev.seated);
+    }
     engine.handle(ev);
     stage.onAgentEvent(ev);
     feed.add(ev);
@@ -76,6 +109,11 @@ async function main() {
       setTimeout(() => agents.delete(id), 6000);
     }
     if (ev.kind === 'permission_request') showPermission(ev);
+    if (ev.kind === 'permission_resolved' && ev.agentId === permAgent) {
+      // answered somewhere else (in Claude Code itself)
+      permAgent = null;
+      perm.hidden = true;
+    }
     if (detail.current) refreshDetail();
   });
   engine.on('note', (n) => {
@@ -139,6 +177,7 @@ async function main() {
     mutes.set(id, m);
     engine.setVoiceMuted(id, m);
   };
+  detail.tasks = !LIVE; // handing out parts arrives with conducting
   detail.onTask = (id) => {
     // Demo: the conductor hands over a new part; the musician starts reading it.
     const ev = makeEvent(id, 'file_read', { tool: 'Read', target: 'new-part.md' });
@@ -218,6 +257,7 @@ async function main() {
     }
   };
   const tourBtn = $<HTMLButtonElement>('#tour-btn');
+  tourBtn.hidden = LIVE; // the tour introduces the demo orchestra
   const runTour = () => {
     if (tour.isOpen || permAgent || pipWin) return;
     detail.close();
@@ -312,6 +352,7 @@ async function main() {
     $('#start').classList.add('gone');
     stage.openCurtains(3.6);
     const untilDownbeat = await engine.startConcert();
+    if (live) return void setTimeout(() => sim.start(), untilDownbeat * 1000 + 300);
     setTimeout(
       () => {
         tourBtn.disabled = false;
@@ -321,6 +362,18 @@ async function main() {
       untilDownbeat * 1000 + (toured() ? 600 : 1400),
     );
   };
+  // ---- live mode: say so when the stage is empty or the live server is missing
+  const liveNote = $('#live-note');
+  live?.on('status', (st) => {
+    const key = st.unavailable ? 'live.unavailable' : st.connected && st.sessions === 0 ? 'live.empty' : '';
+    liveNote.hidden = !key;
+    if (key) {
+      const text = $('#live-note-text');
+      text.dataset.i18n = key; // so a language switch re-translates it
+      text.textContent = t(key);
+    }
+  });
+
   // expose for debugging in the console
   Object.assign(window, { bytehoven: { engine, stage, sim, Tone } });
 }

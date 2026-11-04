@@ -8,7 +8,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "prepare-samples": "node scripts/prepare-samples.mjs",
-    "test": "node --test tests/*.test.ts"
+    "test": "node --test tests/*.test.ts",
+    "hooks": "node bin/hooks.ts"
   },
   "license": "MIT",
   "type": "module",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@breezystack/lamejs": "^1.2.7",
+    "@types/node": "^24.19.2",
     "typescript": "^7.0.2",
     "vite": "^8.3.5"
   },

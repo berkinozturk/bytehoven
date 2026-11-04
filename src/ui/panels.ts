@@ -49,11 +49,15 @@ export class Feed {
   private html(ev: AgentEvent, info: AgentInfo, color: number) {
     const child = ev.child?.name ?? '';
     let what: string;
+    // a live session taking or leaving its own chair (not a sub-agent)
+    const self = ev.child?.id === ev.agentId;
     if (ev.kind === 'permission_resolved') what = t(ev.approved ? 'event.approved' : 'event.denied');
+    else if (self && ev.kind === 'subagent_join') what = t('event.arrived', { session: ev.child!.session });
+    else if (self && ev.kind === 'subagent_leave') what = t('event.departed');
     else what = t(`event.${ev.kind}`, { child });
     const showTarget = ev.target && !['subagent_join', 'subagent_leave', 'thinking', 'idle'].includes(ev.kind);
     const tool = ev.tool && ['tool_start'].includes(ev.kind) ? `${esc(ev.tool)} ` : '';
-    const target = showTarget ? `${tool}<code>${esc(ev.target!)}</code>` : '';
+    const target = showTarget ? `${tool}<code>${esc(ev.target!)}</code>` : ev.kind === 'tool_start' && ev.tool ? `<code>${esc(ev.tool)}</code>` : '';
     const verb = `<span class="what">${esc(what)}</span>`;
     // Turkish puts the verb last: "Otto npm test çalıştırdı"
     const body = target ? (getLang() === 'tr' ? `${target} ${verb}` : `${verb} ${target}`) : verb;
@@ -148,6 +152,8 @@ export interface DetailData {
 /** The musician detail drawer. */
 export class Detail {
   current: string | null = null;
+  /** Show the "hand them a new part" box (demo only for now). */
+  tasks = true;
   onVolume: (id: string, db: number) => void = () => {};
   onMute: (id: string, m: boolean) => void = () => {};
   onTask: (id: string, text: string) => void = () => {};
@@ -179,10 +185,14 @@ export class Detail {
         <input type="range" class="vol" min="-24" max="6" step="1" value="${d.volume}" />
         <label class="row" style="gap:6px;color:var(--dim)"><input type="checkbox" class="mute" ${d.muted ? 'checked' : ''}/> ${esc(t('detail.mute'))}</label>
       </div>
-      <h3>${esc(t('detail.task', { name: d.info.name }))}</h3>
+      ${
+        this.tasks
+          ? `<h3>${esc(t('detail.task', { name: d.info.name }))}</h3>
       <textarea class="task" placeholder="${esc(t('detail.taskPh'))}"></textarea>
       <div class="note">${esc(t('detail.demoNote'))}</div>
-      <button class="btn gold send">${esc(t('detail.send'))}</button>
+      <button class="btn gold send">${esc(t('detail.send'))}</button>`
+          : ''
+      }
     `;
     const vol = this.el.querySelector<HTMLInputElement>('.vol')!;
     const paint = () => vol.style.setProperty('--v', `${((Number(vol.value) + 24) / 30) * 100}%`);
@@ -193,7 +203,8 @@ export class Detail {
     };
     this.el.querySelector<HTMLInputElement>('.mute')!.onchange = (e) => this.onMute(d.info.id, (e.target as HTMLInputElement).checked);
     this.el.querySelector<HTMLButtonElement>('.close')!.onclick = () => this.close(true);
-    const ta = this.el.querySelector<HTMLTextAreaElement>('.task')!;
+    const ta = this.el.querySelector<HTMLTextAreaElement>('.task');
+    if (!ta) return;
     this.el.querySelector<HTMLButtonElement>('.send')!.onclick = () => {
       if (!ta.value.trim()) return ta.focus();
       this.onTask(d.info.id, ta.value);

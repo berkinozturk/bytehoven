@@ -16,7 +16,9 @@
             <circle cx="16" cy="14" r="2.6" fill="currentColor" />
           </svg>
           <span class="word">Bytehoven</span>
-          <span class="chip" data-i18n="app.demo">Demo</span>
+          <div class="modes" role="group" data-i18n-title="app.mode">
+            <a href="./" data-mode="demo" data-i18n="app.demo">Demo</a><a href="?live" data-mode="live" data-i18n="app.live">Live</a>
+          </div>
           <span class="chip ghost" data-i18n="app.theme">Orchestra</span>
         </div>
         <div class="meter-line" id="chord-line" aria-live="off">
@@ -60,6 +62,11 @@
             <p class="small" data-i18n="start.note"></p>
             <p class="small dim" data-i18n="start.privacy"></p>
           </div>
+        </div>
+
+        <div id="live-note" class="live-note" hidden>
+          <p id="live-note-text"></p>
+          <a href="./" data-i18n="live.demoLink">Watch the demo instead</a>
         </div>
 
         <div id="permission" class="permission" hidden>

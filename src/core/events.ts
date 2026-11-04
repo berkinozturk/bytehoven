@@ -39,6 +39,8 @@ export interface AgentEvent {
   approved?: boolean;
   /** For subagent events: the sub-agent's info. */
   child?: AgentInfo;
+  /** For joins: the musician is already on stage (no walk-in). */
+  seated?: boolean;
   /** Wall-clock ms. */
   at: number;
 }

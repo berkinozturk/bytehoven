@@ -6,3 +6,4 @@ dist/
 # raw sample downloads stay outside the repo; only processed MP3s are committed
 samples-raw/
 .claude/
+.bytehoven/

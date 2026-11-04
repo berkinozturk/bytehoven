@@ -2,13 +2,16 @@
   "app": {
     "tagline": "An orchestra for your AI coding agents",
     "demo": "Demo",
-    "theme": "Orchestra"
+    "theme": "Orchestra",
+    "live": "Live",
+    "mode": "Demo, or your live Claude Code sessions"
   },
   "start": {
     "button": "Begin the concert",
     "loading": "Tuning the orchestra… {pct}%",
     "note": "Sound on. Demo mode: five simulated agents, nothing is connected yet.",
-    "privacy": "Bytehoven never calls a model. It only listens."
+    "privacy": "Bytehoven never calls a model. It only listens.",
+    "liveNote": "Sound on. Live mode: your running Claude Code sessions take the stage. Only tool names and file names are read."
   },
   "top": {
     "volume": "Master volume",
@@ -73,7 +76,9 @@
     "denied": "was not allowed to run",
     "subagent_join": "called in {child}",
     "subagent_leave": "{child} took a bow",
-    "task_done": "finished a part"
+    "task_done": "finished a part",
+    "arrived": "took the stage for {session}",
+    "departed": "left the stage"
   },
   "detail": {
     "session": "Session",
@@ -149,5 +154,10 @@
   "pip": {
     "away": "The concert is playing in the mini window.",
     "back": "Bring it back"
+  },
+  "live": {
+    "empty": "No Claude Code session is running. Start one and its musician walks on stage.",
+    "unavailable": "Live mode needs the dev server: run npm run dev.",
+    "demoLink": "Watch the demo instead"
   }
 }

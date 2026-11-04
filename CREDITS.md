@@ -47,4 +47,5 @@ under MIT. No third-party sprite packs are used.
 | [Tone.js](https://tonejs.github.io) | MIT | audio engine |
 | [Vite](https://vitejs.dev) | MIT | dev server & build |
 | [TypeScript](https://www.typescriptlang.org) | Apache-2.0 | type checking |
+| [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT | **dev-only**: types for the live server code |
 | [@breezystack/lamejs](https://github.com/breezystack/lamejs) | LGPL-3.0 | **dev-only**: encoding samples in `scripts/prepare-samples.mjs`; not part of the shipped app |

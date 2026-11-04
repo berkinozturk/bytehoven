@@ -18,7 +18,7 @@ And when one of them needs you, the whole hall holds its breath.
 
 ---
 
-> **Status: demo mode.** Five simulated agents perform a scripted concert so you can see and hear every feature in about a minute. Live Claude Code sessions are next on the roadmap.
+> **Status: early.** Watch the **demo** (five simulated agents, every feature in about a minute) or switch to **Live** and hear your own running Claude Code sessions.
 
 ## ✨ Why
 
@@ -98,6 +98,22 @@ bytehoven.sim.fire('otto', 'test_fail')   // a sour chord
 bytehoven.sim.fire('mira', 'task_done')   // a little finale
 ```
 
+### Live mode: your own Claude Code sessions
+
+Press **Live** in the top bar (or open `http://127.0.0.1:5180/?live`). Every running Claude Code session takes a chair, up to five, named after its project folder; its sub-agents join as second chairs. Start a new session and its musician walks on stage; close it and they walk off.
+
+**The fermata, with a real Approve button.** To hear the hall hold its breath when a session needs your permission, add Bytehoven's hook to Claude Code:
+
+```bash
+npm run hooks              # shows what would be added, changes nothing
+npm run hooks -- --write   # adds it to ~/.claude/settings.json (backs the file up first)
+npm run hooks -- --remove  # takes it out again
+```
+
+Then start a new Claude Code session. When it asks for permission, the musician raises a hand, and **Approve** / **Deny** in Bytehoven answer Claude Code directly. Each answer covers that one request only; there is no "always allow". If Bytehoven isn't open, or you don't answer within about 50 seconds, Claude Code asks you as usual.
+
+The hook is documented for the terminal and VS Code. Whether the Claude desktop app runs user hooks isn't documented, so try it there before relying on it.
+
 ### Next to Claude Code
 
 Bytehoven fits a narrow side panel: below 720px wide it switches to a compact layout (stage on top, score and programme underneath, the permission card docked at the bottom of the stage, the musician drawer as an overlay).
@@ -121,11 +137,14 @@ The pop-out uses the browser's [Document Picture-in-Picture](https://developer.c
 
 ```
 src/
-  core/      event model (the contract for live data) and the demo simulator
+  core/      event model, the demo simulator and the live source
   audio/     engine: scheduler, harmony, cadences, the fermata
   stage/     pixel toolkit, hall, musicians, lights, particles, camera
   ui/        live score strip, programme feed, tension meter, detail drawer
   i18n/      en · tr
+server/live/  read-only session reader, transcript parser, local endpoints
+bin/          the Claude Code permission hook and its installer
+tests/        node --test suites (parser privacy, reader, endpoints)
 scripts/
   prepare-samples.mjs   raw VSCO WAVs → trimmed, pitch-verified MP3s
 ```
@@ -151,19 +170,18 @@ The script trims the silence before each attack, caps the length with a fade, pe
 
 - **No model calls, ever.** Bytehoven costs 0 tokens.
 - **Local only.** The dev server binds to `127.0.0.1`.
-- **Metadata only.** When live mode lands, Bytehoven will read Claude Code's local transcripts **read-only**, and only tool names, short targets and status. Prompts, messages and file contents are never read or stored.
+- **Metadata only.** Live mode reads Claude Code's local session list and transcripts **read-only** (`~/.claude/sessions`, `~/.claude/projects`). Each line is parsed in memory and only the tool name, a file's base name, a command's first word (`git`, `npm test`) and whether it failed are kept. Prompts, messages, thinking, file contents, full paths and full commands are dropped on the spot, never stored and never sent anywhere. A test (`tests/parse.test.ts`) checks that none of them can leak.
+- **The permission hook** sends only the session id, the tool name and the same short target to `127.0.0.1`. The local endpoints check the `Host` header (no DNS rebinding), only accept Approve / Deny from Bytehoven's own page, and only accept the hook's call with a random token stored in `.bytehoven/live.json`, readable only by you.
+- **Format caveat.** Claude Code's transcript format is internal and can change between versions; if a release changes it, live mode may go quiet until Bytehoven catches up.
 
 ## 🗺 Roadmap
 
 - [x] **Demo mode**: Orchestra theme, five musicians, fermata, sub-agents, errors, live score
 - [x] **First-run tour**: each musician steps into the spotlight and plays, then the conductor, live score, fermata and programme are introduced
 - [x] **Next to Claude Code**: a compact layout for side panels, plus an always-on-top pop-out window
-- [ ] **Live mode**: read `~/.claude/projects/**/*.jsonl` (read-only), with optional Claude Code hooks for instant permission events
-  - find live sessions via `~/.claude/sessions/<pid>.json`; desktop-app sessions don't register there, so also pick up recent transcripts whose `entrypoint` is `claude-desktop`
-  - real second chairs from `<session>/subagents/agent-*.meta.json` (type and last tool only, never message text)
-  - map sessions to musicians by working folder or tmux window name, and log a ready-to-paste mapping line for any session that matches none
-  - local server checks the `Host` and `Origin` headers, so other websites can't talk to it (DNS-rebinding protection)
-  - on page load, replay the last few events before going live, so the score never starts empty
+- [x] **Live mode**: running sessions and sub-agents read live, read-only; a permission hook for the fermata with real Approve / Deny
+  - [ ] choose which session sits in which chair (by folder), instead of first come, first seated
+  - [ ] on page load, replay the last few events so the score never starts empty
 - [ ] **Box office**: today's tokens per musician, de-duplicated by message id, with cache reads shown separately (they're re-read context, not new work)
 - [ ] **Conducting**: hand a musician a new part (`claude -p`, prompt via stdin, narrow tool permissions, `rm` / `git push` / `curl` blocked by default)
   - the conductor plans first: one tool-less `claude -p --json-schema` call returns who plays what; the plan is validated, and nothing starts if it's malformed. A dry-run shows the plan without running it
@@ -178,6 +196,7 @@ Issues and ideas are very welcome, especially new themes, instruments and musici
 
 ```bash
 npm run typecheck   # strict TypeScript
+npm test            # node --test, no extra dependencies
 npm run build       # production build in dist/
 ```
 

@@ -2,13 +2,16 @@
   "app": {
     "tagline": "Yapay zekâ kodlama ajanların için bir orkestra",
     "demo": "Demo",
-    "theme": "Orkestra"
+    "theme": "Orkestra",
+    "live": "Canlı",
+    "mode": "Demo ya da canlı Claude Code oturumların"
   },
   "start": {
     "button": "Konseri başlat",
     "loading": "Orkestra akort ediliyor… %{pct}",
     "note": "Sesi açın. Demo modu: beş simüle ajan, henüz hiçbir şeye bağlı değil.",
-    "privacy": "Bytehoven hiçbir modeli çağırmaz. Sadece dinler."
+    "privacy": "Bytehoven hiçbir modeli çağırmaz. Sadece dinler.",
+    "liveNote": "Sesi açın. Canlı mod: çalışan Claude Code oturumların sahneye çıkar. Yalnızca araç ve dosya adları okunur."
   },
   "top": {
     "volume": "Ana ses",
@@ -73,7 +76,9 @@
     "denied": "çalıştırmasına izin verilmedi",
     "subagent_join": "{child} sahneye çağırdı",
     "subagent_leave": "{child} selam verip ayrıldı",
-    "task_done": "bir bölümü bitirdi"
+    "task_done": "bir bölümü bitirdi",
+    "arrived": "{session} için sahneye çıktı",
+    "departed": "sahneden ayrıldı"
   },
   "detail": {
     "session": "Oturum",
@@ -149,5 +154,10 @@
   "pip": {
     "away": "Konser mini pencerede çalıyor.",
     "back": "Geri getir"
+  },
+  "live": {
+    "empty": "Çalışan bir Claude Code oturumu yok. Bir tane başlat, müzisyeni sahneye yürüsün.",
+    "unavailable": "Canlı mod için geliştirme sunucusu gerekir: npm run dev çalıştır.",
+    "demoLink": "Onun yerine demoyu izle"
   }
 }
