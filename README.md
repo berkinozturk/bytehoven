@@ -128,6 +128,12 @@ Press **Live** in the top bar (or open `http://127.0.0.1:5180/?live`). The whole
 
 All your running sessions play the same orchestra; every line in the programme shows which project folder it came from. Sub-agents join as second chairs, and musicians with nothing to do doze off. When you open the page, the last 20 events are already written in the score and the programme (faded, not played), so you can see what just happened.
 
+**Codex and Gemini CLI too.** Sessions of [OpenAI Codex CLI](https://github.com/openai/codex) and [Google Gemini CLI](https://github.com/google-gemini/gemini-cli) play in the same orchestra, tagged `folder · codex` or `folder · gemini`. Neither keeps a list of running sessions, so Bytehoven treats a transcript that changed in the last ten minutes as running.
+- Codex: `~/.codex/sessions/…/rollout-*.jsonl`, or `$CODEX_HOME`.
+- Gemini: `~/.gemini/tmp/<project>/chats/session-*.jsonl`.
+
+They are read the same way as Claude Code's, read-only and metadata only. The fermata hook and the box office are Claude Code only for now.
+
 **The fermata, with a real Approve button.** To hear the hall hold its breath when a session needs your permission, add Bytehoven's hook to Claude Code:
 
 ```bash
@@ -228,10 +234,10 @@ The script trims the silence before each attack, caps the length with a fade, pe
 
 - **No model calls, ever.** Bytehoven costs 0 tokens.
 - **Local only.** The dev server binds to `127.0.0.1`.
-- **Metadata only.** Live mode reads Claude Code's local session list and transcripts **read-only** (`~/.claude/sessions`, `~/.claude/projects`). Each line is parsed in memory and only the tool name, a file's base name, a command's first word (`git`, `npm test`) and whether it failed are kept. Prompts, messages, thinking, file contents, full paths and full commands are dropped on the spot, never stored and never sent anywhere. A test (`tests/parse.test.ts`) checks that none of them can leak.
+- **Metadata only.** Live mode reads Claude Code's local session list and transcripts **read-only** (`~/.claude/sessions`, `~/.claude/projects`), and the same way Codex CLI's and Gemini CLI's (`~/.codex/sessions`, `~/.gemini/tmp`). Each line is parsed in memory and only the tool name, a file's base name, a command's first word (`git`, `npm test`) and whether it failed are kept. Prompts, messages, thinking, file contents, full paths and full commands are dropped on the spot, never stored and never sent anywhere. A test (`tests/parse.test.ts`) checks that none of them can leak.
 - **The box office** also reads each reply's message id, time and four token counts (input, output, cache read, cache write). Nothing else; `tests/boxoffice.test.ts` checks it.
 - **The permission hook** sends only the session id, the tool name and the same short target to `127.0.0.1`. The local endpoints check the `Host` header (no DNS rebinding), only accept Approve / Deny from Bytehoven's own page, and only accept the hook's call with a random token stored in `.bytehoven/live.json`, readable only by you.
-- **Format caveat.** Claude Code's transcript format is internal and can change between versions; if a release changes it, live mode may go quiet until Bytehoven catches up.
+- **Format caveat.** These transcript formats are internal and can change between versions; if a release changes it, live mode may go quiet until Bytehoven catches up.
 
 ## 🗺 Roadmap
 
@@ -250,7 +256,8 @@ The script trims the silence before each attack, caps the length with a fade, pe
   - [x] Lo-fi rainy room 🌧
 - [x] **Mixer**: who plays which kind of work, which events make a sound
 - [x] **"Today's symphony"**: record the stage and its sound as a short video, ready to share
-- [ ] Codex and Gemini CLI support
+- [x] Codex and Gemini CLI sessions in live mode (read-only)
+  - [ ] the fermata for Codex too (it has a Claude-style PermissionRequest hook); Gemini has only a BeforeTool hook
 
 ## 🤝 Contributing
 
