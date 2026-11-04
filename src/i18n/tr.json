@@ -322,5 +322,28 @@
         }
       }
     }
+  },
+  "mixer": {
+    "title": "Mikser",
+    "sub": "Kim hangi işi çalar ve hangi olaylar ses çıkarır. Bu tarayıcıda saklanır.",
+    "cast": "Kim ne çalar",
+    "reloadNote": "Yeni dağılım sayfa yenilenince yerini alır.",
+    "apply": "Uygula ve yenile",
+    "events": "Hangi olaylar ses çıkarır",
+    "note": "Kapatılan olaylar sahnede ve programda yine görünür. Fermata her zaman çalar. Tur, varsayılan dağılımı tanıtır.",
+    "reset": "Varsayılan karışıma dön",
+    "ev": {
+      "file_read": "Dosya okuma",
+      "file_write": "Dosya yazma",
+      "tool_start": "Diğer araçlar (arama, web …)",
+      "bash": "Kabuk komutları",
+      "thinking": "Düşünme",
+      "test_pass": "Geçen testler",
+      "test_fail": "Kalan testler",
+      "error": "Hatalar",
+      "subagent_join": "Alt ajanın gelişi",
+      "subagent_leave": "Alt ajanın gidişi",
+      "task_done": "Biten bir tur"
+    }
   }
 }

@@ -1,5 +1,7 @@
 import { Emitter } from './bus';
-import { makeEvent, type AgentEvent, type AgentEventKind, type AgentInfo } from './events';
+import { makeEvent, type AgentEvent, type AgentEventKind, type AgentInfo, type Role } from './events';
+import { DEFAULT_CAST, roleOf } from './mixer';
+import type { ChairId } from './route';
 
 /**
  * Demo mode: five simulated Claude Code agents with believable rhythms of
@@ -109,7 +111,11 @@ export class DemoSimulator extends Emitter<{ event: AgentEvent }> {
   private running = false;
   private paused = false;
 
-  constructor(readonly agents: AgentInfo[] = DEMO_AGENTS) {
+  constructor(
+    readonly agents: AgentInfo[] = DEMO_AGENTS,
+    /** Who plays which kind of work (from the mixer); the scripted story follows it. */
+    private cast: Readonly<Record<Role, ChairId>> = DEFAULT_CAST,
+  ) {
     super();
     for (const info of agents) this.runtimes.set(info.id, { info, active: false, activity: 1 });
   }
@@ -226,24 +232,24 @@ export class DemoSimulator extends Emitter<{ event: AgentEvent }> {
   /** The scripted part of the demo. Times are ms after the concert starts. */
   private runScript() {
     // 1. Clara skims the codebase — 16 reads in three seconds become one flowing run.
-    this.at(12000, () => this.burst('clara', 'file_read', 'Read', [...FILES.code, ...FILES.refactor], 16, 3000));
+    this.at(12000, () => this.burst(this.as('clara'), 'file_read', 'Read', [...FILES.code, ...FILES.refactor], 16, 3000));
 
     // 2. Ines spawns an Explore sub-agent: a second violin walks on stage.
     this.at(19000, () => {
-      this.runtimes.set(SUB_AGENT.id, { info: SUB_AGENT, active: false, activity: 1 });
-      this.send('ines', 'subagent_join', { tool: 'Task', target: 'explore', child: SUB_AGENT });
+      this.runtimes.set(SUB_AGENT.id, { info: this.leo(), active: false, activity: 1 });
+      this.send(this.as('ines'), 'subagent_join', { tool: 'Task', target: 'explore', child: this.leo() });
     });
     this.at(21500, () => this.setActive('leo', true));
 
     // 3. Otto's test run fails: a dissonant chord.
     this.at(30000, () => {
-      this.setActive('otto', false);
-      this.send('otto', 'bash', { tool: 'Bash', target: 'npm test' });
+      this.setActive(this.as('otto'), false);
+      this.send(this.as('otto'), 'bash', { tool: 'Bash', target: 'npm test' });
     });
-    this.at(32600, () => this.send('otto', 'test_fail', { tool: 'Bash', target: 'auth.spec.ts' }));
+    this.at(32600, () => this.send(this.as('otto'), 'test_fail', { tool: 'Bash', target: 'auth.spec.ts' }));
     this.at(37000, () => {
-      this.send('otto', 'thinking');
-      this.setActive('otto', true);
+      this.send(this.as('otto'), 'thinking');
+      this.setActive(this.as('otto'), true);
     });
 
     // 4. The sub-agent reports back and leaves.
@@ -251,41 +257,51 @@ export class DemoSimulator extends Emitter<{ event: AgentEvent }> {
       this.setActive('leo', false);
       this.send('leo', 'task_done', { tool: 'Task', target: 'explore' });
     });
-    this.at(43000, () => this.send('ines', 'subagent_leave', { tool: 'Task', target: 'explore', child: SUB_AGENT }));
+    this.at(43000, () => this.send(this.as('ines'), 'subagent_leave', { tool: 'Task', target: 'explore', child: this.leo() }));
 
     // 5. Bruno dozes off for a while.
     this.at(44000, () => {
-      this.setActive('bruno', false);
-      this.send('bruno', 'idle');
+      this.setActive(this.as('bruno'), false);
+      this.send(this.as('bruno'), 'idle');
     });
 
     // 6. FERMATA: Clara needs permission to run a command.
-    this.at(48000, () => this.requestPermission('clara', 'Bash', 'npm install'));
+    this.at(48000, () => this.requestPermission(this.as('clara'), 'Bash', 'npm install'));
   }
 
   private afterResolve() {
     this.at(4000, () => {
-      this.send('bruno', 'thinking');
-      this.setActive('bruno', true);
+      this.send(this.as('bruno'), 'thinking');
+      this.setActive(this.as('bruno'), true);
     });
     this.at(9000, () => {
-      this.setActive('otto', false);
-      this.send('otto', 'bash', { tool: 'Bash', target: 'npm test' });
+      this.setActive(this.as('otto'), false);
+      this.send(this.as('otto'), 'bash', { tool: 'Bash', target: 'npm test' });
     });
-    this.at(11600, () => this.send('otto', 'test_pass', { tool: 'Bash', target: '42 passed' }));
-    this.at(12500, () => this.setActive('otto', true));
+    this.at(11600, () => this.send(this.as('otto'), 'test_pass', { tool: 'Bash', target: '42 passed' }));
+    this.at(12500, () => this.setActive(this.as('otto'), true));
     this.at(22000, () => {
-      this.setActive('mira', false);
-      this.send('mira', 'task_done', { tool: 'Write', target: 'README.md' });
+      this.setActive(this.as('mira'), false);
+      this.send(this.as('mira'), 'task_done', { tool: 'Write', target: 'README.md' });
     });
     this.at(26000, () => {
-      this.send('mira', 'thinking');
-      this.setActive('mira', true);
+      this.send(this.as('mira'), 'thinking');
+      this.setActive(this.as('mira'), true);
     });
     // and around again, so the demo keeps telling its story
     this.at(34000, () => {
       this.runtimes.delete(SUB_AGENT.id);
       this.runScript();
     });
+  }
+
+  /** The story is written for the usual cast: "Otto's tests fail" goes to whoever plays tests now. */
+  private as(id: ChairId): ChairId {
+    return this.cast[roleOf(DEFAULT_CAST, id)];
+  }
+
+  /** The sub-agent sits with whoever does research. */
+  private leo(): AgentInfo {
+    return { ...SUB_AGENT, parentId: this.as('ines') };
   }
 }

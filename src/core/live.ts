@@ -1,5 +1,6 @@
 import { Emitter } from './bus';
 import { DEFAULT_INSTRUMENT, makeEvent, type AgentEvent, type AgentEventKind, type AgentInfo, type Role } from './events';
+import { DEFAULT_CAST, roleOf } from './mixer';
 import { chairFor, chairForTool, type ChairId } from './route';
 
 /**
@@ -83,6 +84,18 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
   private paused = false;
   private connected = false;
   private failures = 0;
+  /** Who plays which kind of work (from the mixer). */
+  private cast: Record<Role, ChairId>;
+
+  constructor(cast: Record<Role, ChairId> = { ...DEFAULT_CAST }) {
+    super();
+    this.cast = cast;
+  }
+
+  /** The routed musician for the usual cast, moved to whoever plays that role in this mix. */
+  private routed(chair: ChairId | null, fallback: ChairId): ChairId {
+    return chair ? this.cast[roleOf(DEFAULT_CAST, chair)] : fallback;
+  }
 
   get isRunning() {
     return !!this.source;
@@ -144,7 +157,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     if (this.seated) return;
     this.seated = true;
     for (const c of CHAIRS) {
-      const info: AgentInfo = { id: c.id, name: c.name, role: c.role, instrument: DEFAULT_INSTRUMENT[c.role], session: '—' };
+      const info: AgentInfo = { id: c.id, name: c.name, role: roleOf(this.cast, c.id), instrument: DEFAULT_INSTRUMENT[c.role], session: '—' };
       this.infos.set(c.id, info);
       this.emit('event', makeEvent(c.id, 'subagent_join', { child: info, seated: true }));
     }
@@ -251,7 +264,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
       if (!this.waiting.has(kid)) this.send(kid, kind, { tool, target, session: s.folder });
       return;
     }
-    this.play(m.session, chairFor({ kind, tool, target }, s.last), kind, { tool, target });
+    this.play(m.session, this.routed(chairFor({ kind, tool, target }, null), s.last), kind, { tool, target });
   }
 
   /**
@@ -262,7 +275,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     const { kind, tool, target } = r.ev;
     if (kind === 'subagent_join' || kind === 'subagent_leave' || this.parts.has(r.session)) return;
     const s = this.session(r.session);
-    const chair = chairFor({ kind, tool, target }, s.last);
+    const chair = this.routed(chairFor({ kind, tool, target }, null), s.last);
     s.last = chair;
     this.lastSession.set(chair, r.session);
     const at = performance.now() - Math.max(0, Date.now() - r.at);
@@ -305,7 +318,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     const info: AgentInfo = {
       id,
       name: parent.second,
-      role: parent.role,
+      role: roleOf(this.cast, chair),
       instrument: 'violin', // second chairs are the string section: a second piano wouldn't fit
       parentId: chair,
       session: folder ?? kind ?? 'sub-agent',
@@ -334,7 +347,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     let who: string;
     if (kid) who = kid;
     else {
-      const chair = chairForTool(p.tool, p.target, s.last);
+      const chair = this.routed(chairForTool(p.tool, p.target, null), s.last);
       s.last = chair;
       this.lastSession.set(chair, p.session);
       who = chair;

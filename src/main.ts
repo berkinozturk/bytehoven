@@ -5,6 +5,9 @@ import type { AgentEvent, AgentInfo } from './core/events';
 import { makeEvent } from './core/events';
 import { DemoSimulator, DEMO_AGENTS, SUB_AGENT } from './core/simulator';
 import { LiveSource } from './core/live';
+import { roleOf } from './core/mixer';
+import type { ChairId } from './core/route';
+import { MixerPanel, loadMix } from './ui/mixer';
 import { applyStatic, getLang, onLang, setLang, setVariant, t, type Lang } from './i18n';
 import { COMING, THEMES, chooseTheme, chosenTheme, type ThemeId } from './themes';
 import { Stage, type Seat } from './stage/stage';
@@ -57,6 +60,7 @@ const appRoot = document.getElementById('app')!;
 const $ = <T extends HTMLElement>(sel: string) => appRoot.querySelector<T>(sel)!;
 
 const THEME = chosenTheme();
+const MIX = loadMix();
 setVariant(THEME === 'orchestra' ? null : THEME);
 
 async function main() {
@@ -65,8 +69,11 @@ async function main() {
   const stage = new Stage(THEMES[THEME].stage);
   document.documentElement.dataset.theme = THEME;
   $('.tempo').textContent = `♩ = ${THEMES[THEME].sound.bpm}`;
-  const live = LIVE ? new LiveSource() : null;
-  const sim: Source = live ?? new DemoSimulator();
+  const live = LIVE ? new LiveSource(MIX.cast) : null;
+  // in the demo each musician plays the role the mixer gave them
+  const demoAgents = DEMO_AGENTS.map((a) => ({ ...a, role: roleOf(MIX.cast, a.id as ChairId) }));
+  const sim: Source = live ?? new DemoSimulator(demoAgents, MIX.cast);
+  engine.setSilent(MIX.silent);
   document.documentElement.classList.toggle('live', LIVE);
   const agents = new Map<string, AgentInfo>();
   const recent = new Map<string, AgentEvent[]>();
@@ -82,6 +89,15 @@ async function main() {
   const feed = new Feed($('#feed'), who);
   const meter = new TensionMeter($('#gauge-fill'), $('#gauge-glow'), $('#tension-word'), $('#tension-spark'));
   const detail = new Detail($('#detail'));
+  // ---- the mixer: who plays which work, which events sound
+  const mixer = new MixerPanel($('#mixer'), MIX, (c) => `${agents.get(c)?.name ?? c} · ${t(`instrument.${agents.get(c)?.instrument ?? 'piano'}`)}`);
+  mixer.onSilent = (kinds) => engine.setSilent(kinds);
+  $<HTMLButtonElement>('#mixer-btn').onclick = () => {
+    if (mixer.isOpen) return mixer.close();
+    detail.close();
+    stage.select(null);
+    mixer.open();
+  };
 
   stage.beat = () => engine.beatPhase();
   stage.tension = () => ({ value: engine.tension, agent: engine.fermataAgent });
@@ -93,7 +109,7 @@ async function main() {
     engine.addVoice(info.id, info.instrument, pan(seat.x));
     score.addRow(info, seat.color);
   };
-  if (!LIVE) for (const a of DEMO_AGENTS) addAgent(a);
+  if (!LIVE) for (const a of demoAgents) addAgent(a);
 
   // ---- events flow: simulator → (sound + stage + feed)
   sim.on('event', (ev) => perform(ev));
@@ -189,8 +205,10 @@ async function main() {
   });
   const refreshDetail = () => detail.current && agents.has(detail.current) && detail.refresh(detailData(detail.current));
   stage.onSelect = (id) => {
-    if (id && agents.has(id)) detail.open(detailData(id));
-    else detail.close();
+    if (id && agents.has(id)) {
+      if (mixer.isOpen) mixer.close();
+      detail.open(detailData(id));
+    } else detail.close();
   };
   detail.onClose = () => stage.select(null);
   detail.onVolume = (id, db) => {
@@ -251,6 +269,7 @@ async function main() {
   appRoot.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => (b.onclick = () => setLang(b.dataset.lang as Lang)));
   onLang(() => {
     applyStatic();
+    if (mixer.isOpen) mixer.open();
     if (appRoot.ownerDocument !== document) applyStatic(appRoot.ownerDocument);
     paintThemes();
     paintLang();

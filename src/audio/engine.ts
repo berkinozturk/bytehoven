@@ -210,6 +210,12 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
   }
 
   private busIn!: Tone.InputNode;
+  private silent = new Set<AgentEvent['kind']>();
+
+  /** Events the mixer switched off: they still show on stage, but make no sound. */
+  setSilent(kinds: Iterable<AgentEvent['kind']>) {
+    this.silent = new Set(kinds);
+  }
   private crackle?: Tone.Player;
 
   // ------------------------------------------------------------------ voices
@@ -283,6 +289,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     const v = this.voices.get(ev.agentId);
     if (!v) return;
     v.lastEventAt = performance.now();
+    if (this.silent.has(ev.kind)) return; // switched off in the mixer
     const t = Tone.getTransport();
     switch (ev.kind) {
       case 'permission_request':

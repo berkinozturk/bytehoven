@@ -24,14 +24,14 @@ const RUNNERS = new Set(['vitest', 'jest', 'pytest', 'mocha', 'playwright', 'php
 const isTest = (target?: string) => !!target && (target.endsWith(' test') || target === 'node --test' || RUNNERS.has(target));
 
 /** The musician for a tool call (also used for permission requests and errors). */
-export function chairForTool(tool: string, target: string | undefined, fallback: ChairId): ChairId {
+export function chairForTool<F>(tool: string, target: string | undefined, fallback: F): ChairId | F {
   if (SHELL.has(tool)) return isTest(target) ? 'otto' : 'bruno';
   if (WRITE.has(tool)) return target && DOC.test(target) ? 'mira' : 'clara';
   if (RESEARCH.has(tool)) return 'ines';
   return fallback;
 }
 
-export function chairFor(ev: { kind: string; tool?: string; target?: string }, fallback: ChairId): ChairId {
+export function chairFor<F>(ev: { kind: string; tool?: string; target?: string }, fallback: F): ChairId | F {
   switch (ev.kind) {
     case 'test_pass':
     case 'test_fail':

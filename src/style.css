@@ -1369,3 +1369,44 @@ html.live .modes [data-mode='live']::before {
 .perm-from:empty {
   display: none;
 }
+
+/* ---- mixer drawer (shares the detail drawer's look) */
+.mixer .name {
+  font-size: 26px;
+}
+.mix-cast {
+  display: grid;
+  gap: 8px;
+}
+.mix-row {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  align-items: center;
+  gap: 10px;
+  color: var(--dim);
+  font-size: 13px;
+}
+.mix-row select {
+  min-width: 0;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+}
+.mix-events {
+  display: grid;
+  gap: 6px;
+}
+.mix-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 13px;
+}
+.mixer .apply,
+.mixer .reset {
+  margin-top: 10px;
+}
