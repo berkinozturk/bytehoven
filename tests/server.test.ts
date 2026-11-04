@@ -171,3 +171,23 @@ test("the box office endpoint answers the page with today's takings, and no othe
     await s.close();
   }
 });
+
+test('a plan is asked for and run only from the page itself', async () => {
+  const s = await start();
+  try {
+    const seen: unknown[] = [];
+    s.hub.onPlan = async (session, task) => (seen.push([session, task]), { parts: [{ role: 'code', task: 'do it' }] });
+    s.hub.onPlanRun = (session, parts) => (seen.push([session, parts]), { ok: true });
+    const self = `http://${s.host}`;
+    const plan = await request(s.port, 'POST', '/__live/plan', { host: s.host, origin: self }, { session: 'abc', task: 'make it dark' });
+    assert.equal(plan.status, 200);
+    assert.deepEqual(JSON.parse(plan.body), { parts: [{ role: 'code', task: 'do it' }] });
+    const run = await request(s.port, 'POST', '/__live/plan/run', { host: s.host, origin: self }, { session: 'abc', parts: [{ role: 'code', task: 'do it' }] });
+    assert.equal(run.status, 202);
+    assert.deepEqual(seen, [['abc', 'make it dark'], ['abc', [{ role: 'code', task: 'do it' }]]]);
+    const evil = await request(s.port, 'POST', '/__live/plan', { host: s.host, origin: 'https://evil.example' }, { session: 'abc', task: 'x' });
+    assert.equal(evil.status, 403);
+  } finally {
+    await s.close();
+  }
+});

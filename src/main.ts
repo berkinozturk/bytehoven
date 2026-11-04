@@ -260,6 +260,23 @@ async function main() {
   };
   if (live) {
     detail.taskNote = 'detail.liveNote';
+    detail.planning = true;
+    detail.onPlan = async (id, text) => {
+      detail.showPlan({ kind: 'wait' });
+      const r = await live.plan(id, text);
+      if (!('parts' in r)) return detail.showPlan({ kind: 'error', text: t(r.error === 'busy' ? 'plan.busy' : r.error === 'malformed' ? 'plan.malformed' : 'plan.failed') });
+      detail.showPlan({
+        kind: 'plan',
+        parts: r.parts.map((p) => {
+          const m = live.musicianFor(p.role);
+          return { who: agents.get(m)?.name ?? m, color: SEATS[m]?.color ?? 0xffffff, role: t(`role.${p.role}`), task: p.task };
+        }),
+        run: async () => {
+          const ok = await live.runPlan(id, r.parts);
+          detail.flash(t(ok === 'ok' ? 'plan.started' : ok === 'busy' ? 'detail.taskBusy' : 'detail.taskFailed'));
+        },
+      });
+    };
     detail.onTask = async (id, text) => {
       const r = await live.task(id, text);
       detail.flash(t(r === 'ok' ? 'detail.taskSent' : r === 'busy' ? 'detail.taskBusy' : 'detail.taskFailed'));

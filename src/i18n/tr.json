@@ -359,5 +359,17 @@
     "unavailable": "Canlı sunucu çalışmıyor, sayılacak bir şey yok.",
     "empty": "Bugün henüz iş yok.",
     "note": "{n} mesaj, her biri bir kez sayıldı. “Önbellekten” yeniden okunan bağlamdır, yeni iş değil; bu yüzden ayrı tutulur. Yalnızca token sayıları okunur, mesajlar asla."
+  },
+  "plan": {
+    "ask": "Önce planla",
+    "wait": "Şef görevi okuyup plan çıkarıyor…",
+    "title": "Plan",
+    "dry": "Henüz hiçbir şey başlamadı. Göz at: Çalıştır, parçaları sırayla, her birini müzisyeninin ikinci sandalyesinde çalar.",
+    "run": "Planı çalıştır",
+    "cancel": "Vazgeç",
+    "started": "Plan çalıyor: parçalar sırayla.",
+    "busy": "Önceki plan hâlâ hazırlanıyor. Birazdan tekrar dene.",
+    "malformed": "Plan bozuk biçimde geldi, bu yüzden hiçbir şey başlamadı. Tekrar dene ya da partisyonu doğrudan ver.",
+    "failed": "Plan çıkarılamadı. Claude Code kurulu mu?"
   }
 }

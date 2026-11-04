@@ -28,7 +28,7 @@ type Msg =
   | { type: 'event'; session: string; agent?: string; ev: { kind: AgentEventKind; tool?: string; target?: string; child?: string } }
   | ({ type: 'permission' } & Permission)
   | { type: 'permission_end'; id: number; approved?: boolean }
-  | { type: 'part'; session: string; child: string }
+  | { type: 'part'; session: string; child: string; role?: Role }
   | { type: 'part_end'; child: string };
 
 /** An event from before the page opened; `at` is wall-clock ms. */
@@ -134,8 +134,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
 
   /** The conductor hands a musician a new part: a `claude -p` run in the folder that last made it play. */
   async task(musicianId: string, text: string): Promise<'ok' | 'busy' | 'error'> {
-    const session =
-      [...this.parts].find(([, m]) => m === musicianId)?.[0] ?? this.lastSession.get(musicianId) ?? [...this.sessions.keys()].pop();
+    const session = this.sessionFor(musicianId);
     if (!session) return 'error';
     const parent = (this.infos.get(musicianId)?.parentId ?? musicianId) as ChairId;
     this.handing = parent;
@@ -145,6 +144,40 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     } catch {
       return 'error';
     }
+  }
+
+  /** The session a musician's new work would start in. */
+  private sessionFor(musicianId: string) {
+    return [...this.parts].find(([, m]) => m === musicianId)?.[0] ?? this.lastSession.get(musicianId) ?? [...this.sessions.keys()].pop();
+  }
+
+  /** Planning first: ask for a plan for this musician's session. Starts nothing. */
+  async plan(musicianId: string, text: string): Promise<{ parts: Array<{ role: Role; task: string }> } | { error: string }> {
+    const session = this.sessionFor(musicianId);
+    if (!session) return { error: 'unknown' };
+    try {
+      const r = await fetch('/__live/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ session, task: text }) });
+      return await r.json();
+    } catch {
+      return { error: 'failed' };
+    }
+  }
+
+  /** Run a plan you looked over: its parts play one after another, each on its role's second chair. */
+  async runPlan(musicianId: string, parts: Array<{ role: Role; task: string }>): Promise<'ok' | 'busy' | 'error'> {
+    const session = this.sessionFor(musicianId);
+    if (!session) return 'error';
+    try {
+      const r = await fetch('/__live/plan/run', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ session, parts }) });
+      return r.status === 202 ? 'ok' : r.status === 409 ? 'busy' : 'error';
+    } catch {
+      return 'error';
+    }
+  }
+
+  /** Who plays a role in this mix. */
+  musicianFor(role: Role): ChairId {
+    return this.cast[role];
   }
 
   private report() {
@@ -216,8 +249,9 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
         break;
       case 'part': {
         // the musician the part was handed to plays it on its second chair
-        const chair = this.handing ?? this.sessions.get(m.session)?.last;
-        this.handing = null;
+        // a plan's part goes to whoever plays its role; a single part to the musician it was handed to
+        const chair = m.role && m.role in this.cast ? this.cast[m.role] : this.handing ?? this.sessions.get(m.session)?.last;
+        if (!m.role) this.handing = null;
         if (chair) this.pendingParts.set(m.child, chair);
         break;
       }
