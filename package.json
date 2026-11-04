@@ -1,13 +1,14 @@
 {
   "name": "bytehoven",
   "version": "0.1.0",
-  "description": "An animated orchestra for your AI coding agents \u2014 hear what they are doing.",
+  "description": "An animated orchestra for your AI coding agents — hear what they are doing.",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "prepare-samples": "node scripts/prepare-samples.mjs"
+    "prepare-samples": "node scripts/prepare-samples.mjs",
+    "test": "node --test tests/*.test.ts"
   },
   "license": "MIT",
   "type": "module",

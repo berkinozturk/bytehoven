@@ -1,3 +1,5 @@
+import { routeFrames } from './frames';
+
 /**
  * Pop-out: moves the whole app into an always-on-top Document Picture-in-Picture
  * window (Chrome / Edge 116+), so the orchestra can sit on top of a terminal or
@@ -48,10 +50,7 @@ export async function popOut(app: HTMLElement, hooks: PopOutHooks): Promise<bool
   // The main tab may be hidden behind other windows, and browsers throttle animation
   // frames there. Every render loop (Pixi, Tone.Draw, the score) asks the global
   // requestAnimationFrame, so route it to the visible window while we're popped out.
-  const raf = window.requestAnimationFrame;
-  const caf = window.cancelAnimationFrame;
-  window.requestAnimationFrame = (cb) => win.requestAnimationFrame(cb);
-  window.cancelAnimationFrame = (id) => win.cancelAnimationFrame(id);
+  const routeBack = routeFrames(window, win);
 
   // Keyboard shortcuts and resize listeners live on the main window: forward them.
   const forwardKey = (e: KeyboardEvent) => {
@@ -68,13 +67,12 @@ export async function popOut(app: HTMLElement, hooks: PopOutHooks): Promise<bool
   win.addEventListener(
     'pagehide',
     () => {
-      window.requestAnimationFrame = raf;
-      window.cancelAnimationFrame = caf;
+      routeBack();
       home.insertBefore(app, placeholder);
       placeholder.remove();
       hooks.closed();
       // let layout settle in the main tab, then resize the canvases
-      raf(() => window.dispatchEvent(new Event('resize')));
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
     },
     { once: true },
   );
