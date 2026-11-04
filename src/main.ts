@@ -9,6 +9,8 @@ import { roleOf } from './core/mixer';
 import type { ChairId } from './core/route';
 import { MixerPanel, loadMix } from './ui/mixer';
 import { Recorder } from './ui/recorder';
+import { BoxOfficePanel } from './ui/boxoffice';
+import { DEFAULT_CAST } from './core/mixer';
 import { applyStatic, getLang, onLang, setLang, setVariant, t, type Lang } from './i18n';
 import { COMING, THEMES, chooseTheme, chosenTheme, type ThemeId } from './themes';
 import { Stage, type Seat } from './stage/stage';
@@ -117,12 +119,23 @@ async function main() {
   // ---- the mixer: who plays which work, which events sound
   const mixer = new MixerPanel($('#mixer'), MIX, (c) => `${agents.get(c)?.name ?? c} · ${t(`instrument.${agents.get(c)?.instrument ?? 'piano'}`)}`);
   mixer.onSilent = (kinds) => engine.setSilent(kinds);
-  $<HTMLButtonElement>('#mixer-btn').onclick = () => {
-    if (mixer.isOpen) return mixer.close();
+  // ---- the box office (live mode): today's tokens per musician
+  const box = new BoxOfficePanel(
+    $('#box'),
+    (c) => ({ name: agents.get(c)?.name ?? c, label: t(`instrument.${agents.get(c)?.instrument ?? 'piano'}`), color: SEATS[c]?.color ?? 0xffffff }),
+    (c) => MIX.cast[roleOf(DEFAULT_CAST, c)],
+  );
+  $<HTMLButtonElement>('#box-btn').hidden = !LIVE;
+  /** One drawer at a time: a musician, the mixer or the box office. */
+  const toggleDrawer = (which: MixerPanel | BoxOfficePanel) => {
+    if (which.isOpen) return which.close();
     detail.close();
     stage.select(null);
-    mixer.open();
+    for (const d of [mixer, box]) if (d !== which && d.isOpen) d.close();
+    which.open();
   };
+  $<HTMLButtonElement>('#mixer-btn').onclick = () => toggleDrawer(mixer);
+  $<HTMLButtonElement>('#box-btn').onclick = () => toggleDrawer(box);
 
   stage.beat = () => engine.beatPhase();
   stage.tension = () => ({ value: engine.tension, agent: engine.fermataAgent });
@@ -232,6 +245,7 @@ async function main() {
   stage.onSelect = (id) => {
     if (id && agents.has(id)) {
       if (mixer.isOpen) mixer.close();
+      if (box.isOpen) box.close();
       detail.open(detailData(id));
     } else detail.close();
   };
@@ -295,6 +309,7 @@ async function main() {
   onLang(() => {
     applyStatic();
     if (mixer.isOpen) mixer.open();
+    if (box.isOpen) box.render();
     if (appRoot.ownerDocument !== document) applyStatic(appRoot.ownerDocument);
     paintThemes();
     paintLang();

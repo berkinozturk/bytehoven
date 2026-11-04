@@ -1171,6 +1171,7 @@ input[type='range']::-moz-range-thumb {
 }
 
 .modes a {
+  white-space: nowrap;
   padding: 3px 10px;
   font-size: 10.5px;
   font-weight: 600;
@@ -1344,8 +1345,24 @@ html.live .modes [data-mode='live']::before {
 }
 
 @media (max-width: 720px) {
-  .theme-pick {
+  .theme-pick,
+  .icon-btn.record {
     display: none;
+  }
+}
+
+/* very narrow panels: the mark alone says Bytehoven, so every control fits */
+@media (max-width: 520px) {
+  .brand .word,
+  #popout {
+    display: none;
+  }
+  .top,
+  .controls {
+    gap: 5px;
+  }
+  .top {
+    padding: 0 6px;
   }
 }
 
@@ -1439,4 +1456,51 @@ html.live .modes [data-mode='live']::before {
   50% {
     opacity: 0.25;
   }
+}
+
+/* ---- box office drawer */
+.box-table {
+  width: 100%;
+  margin-top: 12px;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.box-table th {
+  color: var(--dimmer);
+  font: 600 10.5px var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: right;
+  padding: 0 0 6px 6px;
+}
+.box-table td {
+  text-align: right;
+  padding: 6px 0 6px 6px;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+}
+.box-table td:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.box-table td i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 7px;
+}
+.box-table td small {
+  display: block;
+  margin-left: 14px;
+  color: var(--dimmer);
+  font-size: 11px;
+}
+.box-table .dim {
+  color: var(--dimmer);
+}
+.box-table tfoot td {
+  border-top: 1px solid var(--line-2);
+  font-weight: 600;
 }

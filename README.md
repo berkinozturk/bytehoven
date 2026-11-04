@@ -170,6 +170,10 @@ The sliders button in the top bar opens the mixer:
 
 The mix is saved in your browser only.
 
+### The box office (live mode)
+
+The ticket button shows today's tokens per musician: what they wrote, what they read new, and, apart, what came from the cache (context read again, not new work). Claude Code repeats a reply's usage on every line of that reply, so each reply is counted once, by its message id. A reply goes to the musician of its first tool call; a reply with no tool call (an answer, thinking) goes to whoever that session played last.
+
 ### Today's symphony
 
 The round **record** button in the top bar records the stage and the sound into a video file, up to one minute long. Press it again to stop, and the file (`bytehoven-symphony-<date>-<time>.webm`, or `.mp4` in Safari) is downloaded. Nothing is uploaded anywhere. The score and the programme are not in the video, only the stage.
@@ -219,6 +223,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
 - **No model calls, ever.** Bytehoven costs 0 tokens.
 - **Local only.** The dev server binds to `127.0.0.1`.
 - **Metadata only.** Live mode reads Claude Code's local session list and transcripts **read-only** (`~/.claude/sessions`, `~/.claude/projects`). Each line is parsed in memory and only the tool name, a file's base name, a command's first word (`git`, `npm test`) and whether it failed are kept. Prompts, messages, thinking, file contents, full paths and full commands are dropped on the spot, never stored and never sent anywhere. A test (`tests/parse.test.ts`) checks that none of them can leak.
+- **The box office** also reads each reply's message id, time and four token counts (input, output, cache read, cache write). Nothing else; `tests/boxoffice.test.ts` checks it.
 - **The permission hook** sends only the session id, the tool name and the same short target to `127.0.0.1`. The local endpoints check the `Host` header (no DNS rebinding), only accept Approve / Deny from Bytehoven's own page, and only accept the hook's call with a random token stored in `.bytehoven/live.json`, readable only by you.
 - **Format caveat.** Claude Code's transcript format is internal and can change between versions; if a release changes it, live mode may go quiet until Bytehoven catches up.
 
@@ -230,7 +235,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
 - [x] **Next to Claude Code**: a compact layout for side panels, plus an always-on-top pop-out window
 - [x] **Live mode**: running sessions and sub-agents read live, read-only; a permission hook for the fermata with real Approve / Deny
   - [x] on page load, replay the last few events so the score never starts empty
-- [ ] **Box office**: today's tokens per musician, de-duplicated by message id, with cache reads shown separately (they're re-read context, not new work)
+- [x] **Box office**: today's tokens per musician, de-duplicated by message id, with cache reads shown separately (they're re-read context, not new work)
 - [x] **Conducting**: hand a musician a new part (`claude -p`, prompt via stdin, narrow tool permissions, `rm` / `git push` / `curl` blocked)
   - [ ] next: the conductor plans first: one tool-less `claude -p --json-schema` call returns who plays what; the plan is validated, and nothing starts if it's malformed. A dry-run shows the plan without running it
 - [x] **Themes**: a theme picker; each theme is its own band (sound) on its own stage (pixel art)

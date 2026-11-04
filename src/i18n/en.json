@@ -347,5 +347,17 @@
       "subagent_leave": "A sub-agent leaving",
       "task_done": "A finished turn"
     }
+  },
+  "box": {
+    "title": "Box office",
+    "sub": "Today’s tokens per musician · {date}",
+    "output": "Written",
+    "input": "Read new",
+    "cacheRead": "From cache",
+    "total": "Total",
+    "loading": "Counting…",
+    "unavailable": "The live server isn’t running, so there is nothing to count.",
+    "empty": "No work yet today.",
+    "note": "{n} messages, each counted once. “From cache” is context read again, not new work, so it is kept apart. Only token counts are read, never the messages."
   }
 }

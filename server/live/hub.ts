@@ -8,6 +8,7 @@ import type { LiveMsg, LiveSession } from './reader.ts';
  *   POST /__live/hook      from Bytehoven's Claude Code hook (needs the local token)
  *   POST /__live/decision  Approve / Deny from the page (same origin only)
  *   POST /__live/task      the conductor hands a session a new part (same origin only)
+ *   GET  /__live/box-office today's tokens per musician (same origin only)
  *
  * Guards: the Host header must be this machine at this port (stops DNS rebinding),
  * the decision endpoint only accepts the page's own origin (stops other websites),
@@ -53,6 +54,8 @@ export class LiveHub {
   sessions: () => LiveSession[] = () => [];
   /** Starts a part for a session; set by the plugin. */
   onTask: ((session: string, task: string) => { id: string } | { error: string }) | null = null;
+  /** Today's tokens per musician; set by the plugin. */
+  takings: (() => object) | null = null;
   private token: string;
   private timeoutMs: number;
   private pages = new Set<ServerResponse>();
@@ -97,6 +100,10 @@ export class LiveHub {
     if (req.method === 'GET' && url === '/__live/events') {
       if (origin && origin !== self) return deny(res);
       return this.openPage(res);
+    }
+    if (req.method === 'GET' && url === '/__live/box-office') {
+      if ((origin && origin !== self) || !this.takings) return deny(res);
+      return json(res, this.takings());
     }
     if (req.method === 'POST' && url === '/__live/decision') {
       if (origin !== self || !isJson(req)) return deny(res);
