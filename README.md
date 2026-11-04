@@ -60,15 +60,15 @@ Agent dashboards make you *watch*. Sound notification tools make you *flinch* at
 
 Pick a theme from the chip in the top bar. Each one is its own band on its own stage, and the five chairs keep their roles.
 
-| | Orchestra | Jazz club |
-| --- | --- | --- |
-| Stage | concert hall, organ, velvet curtains | brick wall, neon sign, string lights, candle-lit tables |
-| Key and tempo | D major, 92 BPM | F major, 116 BPM, swing |
-| While agents work | a soft string pad | walking bass, ride cymbal, piano comping |
-| Code · research · docs · tests · commands | piano · violin · flute · timpani · double bass | piano · tenor sax · muted trumpet · drums · double bass |
-| The fermata | A7 in tremolo strings → D | C7♭9 on sax, trumpet and piano, the ride swelling → Fmaj7 |
+| | Orchestra | Jazz club | Lo-fi room |
+| --- | --- | --- | --- |
+| Stage | concert hall, organ, velvet curtains | brick wall, neon sign, string lights, candle-lit tables | a flat at night: rainy window over the city, bookshelf, a cat on the sill, friends on cushions |
+| Key and tempo | D major, 92 BPM | F major, 116 BPM, swing | C major, 76 BPM, lazy swing |
+| While agents work | a soft string pad | walking bass, ride cymbal, piano comping | boom-bap drums, bass guitar, rolled ninth chords, all through worn tape and vinyl crackle |
+| Code · research · docs · tests · commands | piano · violin · flute · timpani · double bass | piano · tenor sax · muted trumpet · drums · double bass | upright piano · jazz guitar · vibraphone · drums · bass guitar |
+| The fermata | A7 in tremolo strings → D | C7♭9 on sax, trumpet and piano, the ride swelling → Fmaj7 | G7♭9 on vibes, guitar and piano, the hi-hat ticking faster → Cmaj9 |
 
-Chiptune and lo-fi are next. `?theme=jazz` in the URL opens a theme directly.
+Chiptune is next. `?theme=jazz` or `?theme=lofi` in the URL opens a theme directly.
 
 ## 𝄐 The fermata
 
@@ -172,7 +172,7 @@ The pop-out uses the browser's [Document Picture-in-Picture](https://developer.c
 src/
   core/      event model, the demo simulator and the live source
   audio/     engine: scheduler, harmony, the fermata; themes/ hold each band's sound
-  stage/     pixel toolkit, hall, jazz club, musicians, lights, particles, camera
+  stage/     pixel toolkit, hall, jazz club, lo-fi room, musicians, lights, particles, camera
   ui/        live score strip, programme feed, tension meter, detail drawer
   i18n/      en · tr
 server/live/  read-only session reader, transcript parser, local endpoints
@@ -187,7 +187,7 @@ The event model carries **only** a tool name, a short target (such as a file nam
 <details>
 <summary><b>Rebuilding the samples</b></summary>
 
-The processed MP3s (about 9 MB) are committed, so you don't need this to run Bytehoven.
+The processed MP3s (about 10 MB) are committed, so you don't need this to run Bytehoven.
 
 To rebuild them, download the instrument folders listed in [CREDITS.md](CREDITS.md) from [VSCO-2-CE](https://github.com/sgossner/VSCO-2-CE) into `samples-raw/<group>/`, then run:
 
@@ -222,7 +222,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
 - [x] **Themes**: a theme picker; each theme is its own band (sound) on its own stage (pixel art)
   - [x] Jazz club 🎷
   - [ ] Chiptune arcade 👾 (synthesised, no samples)
-  - [ ] Lo-fi rainy room 🌧 (FM piano, kalimba, the drum kit's lo-fi mics, rain and vinyl crackle)
+  - [x] Lo-fi rainy room 🌧
 - [ ] **Mixer**: which event plays which sound, instrument assignment per role
 - [ ] **"Today's symphony"**: export a session as a short video/GIF with sound, ready to share
 - [ ] Codex and Gemini CLI support

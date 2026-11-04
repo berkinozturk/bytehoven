@@ -162,7 +162,14 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
   private buildGraph() {
     const limiter = new Tone.Limiter(-1).toDestination();
     this.master = new Tone.Volume(7).connect(limiter);
-    const comp = new Tone.Compressor({ threshold: -20, ratio: 2.5, attack: 0.02, release: 0.25 }).connect(this.master);
+    const comp = new Tone.Compressor({ threshold: -20, ratio: 2.5, attack: 0.02, release: 0.25 });
+    const tex = this.theme.texture;
+    if (tex) {
+      const wobble = new Tone.Vibrato({ frequency: 0.55, depth: tex.wobble }).connect(this.master);
+      const dull = new Tone.Filter({ type: 'lowpass', frequency: tex.lowpass, Q: 0.5 }).connect(wobble);
+      comp.connect(dull);
+      if (tex.crackle) this.crackle = crackle().connect(this.master);
+    } else comp.connect(this.master);
     const reverb = new Tone.Reverb(this.theme.reverb).connect(comp);
     // a hint of early reflections for "hall" depth
     const early = new Tone.FeedbackDelay({ delayTime: 0.031, feedback: 0.12, wet: 0.08 }).connect(reverb);
@@ -186,6 +193,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
   }
 
   private busIn!: Tone.InputNode;
+  private crackle?: Tone.Player;
 
   // ------------------------------------------------------------------ voices
 
@@ -241,6 +249,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     await Tone.start();
     const now = Tone.now() + 0.1;
     this.padVol.volume.value = -8;
+    this.crackle?.start(now);
     const downbeat = this.theme.intro(this, now);
     setTimeout(() => (this.padVol.volume.value = -20), (downbeat - Tone.now()) * 1000);
     const transport = Tone.getTransport();
@@ -635,3 +644,28 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
 }
 
 const toNote = (m: number) => Tone.Frequency(m, 'midi').toNote();
+
+/**
+ * Vinyl crackle, made rather than sampled: six looping seconds of faint hiss
+ * with sparse dust clicks, a few louder pops among them.
+ */
+function crackle(): Tone.Player {
+  const rate = Tone.getContext().sampleRate;
+  const x = new Float32Array(rate * 6);
+  let lp = 0;
+  for (let i = 0; i < x.length; i++) {
+    lp += 0.08 * (Math.random() * 2 - 1 - lp); // dull hiss
+    x[i] = lp * 0.05;
+  }
+  const clicks = 90;
+  for (let c = 0; c < clicks; c++) {
+    const at = Math.floor(Math.random() * (x.length - 200));
+    const amp = (Math.random() < 0.12 ? 0.5 : 0.12) * (Math.random() < 0.5 ? -1 : 1);
+    const len = 8 + Math.floor(Math.random() * 40);
+    for (let i = 0; i < len; i++) x[at + i] += amp * Math.exp(-i / (len / 4)) * (Math.random() * 0.6 + 0.4);
+  }
+  const player = new Tone.Player(Tone.ToneAudioBuffer.fromArray(x));
+  player.loop = true;
+  player.volume.value = -24;
+  return player;
+}

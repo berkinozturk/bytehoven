@@ -3,8 +3,10 @@ import { NEON, NEON_BLUE, TABLES, drawClub, drawClubAudience, drawClubDrapes } f
 import type { Look } from './figures';
 import { drawAudience, drawClosedCurtain, drawFrontDrapes, drawHall, W } from './hall';
 import { Drummer, Saxophonist, Trumpeter } from './jazz-figures';
+import { BassGuitarist, Guitarist, UprightPianist, Vibraphonist } from './lofi-figures';
 import { Bassist, Pianist, makeFigure, type Figure } from './musicians';
 import type { PixelCanvas } from './pixel';
+import { CUSHIONS, LAMP, WIN, WINDOW_GLOW, drawRoom, drawRoomAudience, drawRoomFront } from './room';
 
 /** What the stage looks like: the room, what is in front of the band, and who plays each chair. */
 export interface StageTheme {
@@ -66,4 +68,33 @@ export const jazzStage: StageTheme = {
     }
   },
   light: 0xffc890,
+};
+
+export const lofiStage: StageTheme = {
+  backdrop: drawRoom,
+  front: drawRoomFront,
+  curtain: drawClosedCurtain,
+  audience: drawRoomAudience,
+  glows: [
+    // the window and the moon, the floor lamp, the cushions catching it
+    [(WIN.x0 + WIN.x1) / 2, (WIN.y0 + WIN.y1) / 2, 3.4, WINDOW_GLOW, 0.22],
+    [WIN.x1 - 30, WIN.y0 + 15, 0.7, 0xfff2d0, 0.4],
+    [W - 24, 80, 1.6, LAMP, 0.55],
+    ...CUSHIONS.map((x) => [x, 206, 0.6, LAMP, 0.18] as const),
+  ],
+  figure(instrument, look) {
+    switch (instrument) {
+      case 'violin':
+        return new Guitarist(look);
+      case 'flute':
+        return new Vibraphonist(look);
+      case 'percussion':
+        return new Drummer(look);
+      case 'contrabass':
+        return new BassGuitarist(look);
+      case 'piano':
+        return new UprightPianist(look);
+    }
+  },
+  light: 0xffb8a0,
 };

@@ -37,6 +37,16 @@ octave labels verified with a YIN pitch detector, encoded as 96 kbps MP3.
   before the same processing as above.
 - Piano and double bass are shared with the Orchestra.
 
+### Lo-fi room
+
+- **Upright piano** (*Upright Piano, Knight*, soft layer) and **vibraphone** (*Vibraphone, soft
+  mallets*): **VCSL** (above), **CC0 1.0**.
+- **Jazz guitar** (*Electric Guitar FSBS, jazz, bridge pickup*) and **bass guitar** (*Finger Bass YR*):
+  **FreePats**, <https://freepats.zenvoid.org>, **CC0 1.0** (licence file in each bank).
+  They ship as FLAC; converted to WAV with macOS `afconvert`, then processed as above.
+- The drum kit is shared with the Jazz club.
+- The vinyl crackle is generated in code (filtered noise and random clicks), not sampled.
+
 ## Pixel art
 
 Every visual on stage — the hall, the organ, the curtains, the jazz club and

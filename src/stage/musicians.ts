@@ -521,7 +521,7 @@ export class Pianist extends Figure {
     }
   }
 
-  private drawPiano(k0: number, fy: number, f: Frame) {
+  protected drawPiano(k0: number, fy: number, f: Frame) {
     const c = this.c;
     const pc = P.piano;
     const x0 = k0 + 9,

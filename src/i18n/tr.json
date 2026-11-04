@@ -244,6 +244,44 @@
           "body": "Otto testleri çalıştırıyor. Geçen testler böyle bir davul geçişi ve büyük bir akorla biter. Başarısız test ise sert bir vuruş ve uyumsuz bir akor demek."
         }
       }
+    },
+    "lofi": {
+      "app": {
+        "theme": "Lo-fi oda"
+      },
+      "instrument": {
+        "piano": "Duvar piyanosu",
+        "percussion": "Davul",
+        "violin": "Caz gitarı",
+        "flute": "Vibrafon",
+        "contrabass": "Bas gitar"
+      },
+      "tour": {
+        "welcome": {
+          "title": "Odaya hoş geldin",
+          "body": "Her yapay zekâ kodlama ajanı bu küçük grupta bir müzisyen. Yaptığı her şey ağır bir ritme dönüşüyor; ajanlarını sadece dinleyerek takip edebilirsin."
+        },
+        "clara": {
+          "title": "Clara · duvar piyanosu",
+          "body": "Clara kod yazıyor. Düzenlediği her dosya yumuşak, arpejli bir akor olarak duyuluyor. Adımlar arasında düşünür; düşünen müzisyen sessizce doğaçlama yapar."
+        },
+        "ines": {
+          "title": "Ines · caz gitarı",
+          "body": "Ines araştırma yapıyor: web aramaları ve dokümanlar. Her araç çağrısı gitarda kısa bir cümle. Yardımcı çağırırsa ikinci bir gitarist katılır."
+        },
+        "mira": {
+          "title": "Mira · vibrafon",
+          "body": "Mira dokümantasyonu yazıyor. Bir ajan dosya okuduğunda müzisyeni sayfa çevirir ve vibrafon yumuşak bir nota çalar."
+        },
+        "bruno": {
+          "title": "Bruno · bas gitar",
+          "body": "Bruno komutları ve build’leri çalıştırıyor. Kabuk komutları bas gitarda ritmik bir nabız gibi duyulur. Yapacak iş yoksa müzisyen uyuklar. Zzz."
+        },
+        "otto": {
+          "title": "Otto · davul",
+          "body": "Otto testleri çalıştırıyor. Geçen testler yumuşak bir davul geçişi ve böyle sıcak bir akorla biter. Başarısız test ise sert bir vuruş ve uyumsuz bir akor demek."
+        }
+      }
     }
   }
 }

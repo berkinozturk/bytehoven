@@ -1,7 +1,8 @@
 import type { SoundTheme } from './audio/sound-theme';
 import { jazz } from './audio/themes/jazz';
+import { lofi } from './audio/themes/lofi';
 import { orchestra } from './audio/themes/orchestra';
-import { jazzStage, orchestraStage, type StageTheme } from './stage/theme';
+import { jazzStage, lofiStage, orchestraStage, type StageTheme } from './stage/theme';
 
 /** A theme is a band (its sound) on a stage (its look). */
 export interface Theme {
@@ -12,11 +13,12 @@ export interface Theme {
 export const THEMES = {
   orchestra: { sound: orchestra, stage: orchestraStage },
   jazz: { sound: jazz, stage: jazzStage },
+  lofi: { sound: lofi, stage: lofiStage },
 } satisfies Record<string, Theme>;
 
 export type ThemeId = keyof typeof THEMES;
 /** Shown in the picker but not built yet. */
-export const COMING = ['chiptune', 'lofi'] as const;
+export const COMING = ['chiptune'] as const;
 
 const KEY = 'bytehoven.theme';
 const isTheme = (v: unknown): v is ThemeId => typeof v === 'string' && v in THEMES;
