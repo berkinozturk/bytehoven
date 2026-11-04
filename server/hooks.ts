@@ -3,9 +3,13 @@ import os from 'node:os';
 import path from 'node:path';
 
 /**
- * Sets up Bytehoven's PermissionRequest hook in Claude Code's user settings
- * (`~/.claude/settings.json`): show what would change, add it (after a
- * backup), or take it out. `script` is the hook file Claude Code will run.
+ * Sets up Bytehoven's PermissionRequest hook: show what would change, add it
+ * (after a backup), or take it out. `script` is the hook file the agent runs.
+ *
+ *   claude  ~/.claude/settings.json ($CLAUDE_CONFIG_DIR)
+ *   codex   ~/.codex/hooks.json ($CODEX_HOME). Codex has the same PermissionRequest
+ *           hook (openai/codex, codex-rs/hooks); the hook is told `--codex` so it
+ *           can name the session the way the Codex reader does.
  */
 
 /** Hook entries we wrote: the repo's script or the copy `npx bytehoven hooks` installs. */
@@ -14,10 +18,13 @@ const OURS = /bytehoven-hook\.ts|\.bytehoven[\\/]hook\.mjs/;
 type Group = { hooks?: Array<{ command?: string }> };
 type Settings = { hooks?: Record<string, Group[]> };
 
-export function setupHook(mode: 'show' | 'write' | 'remove', script: string, how: { write: string; remove: string }): number {
-  const entry = { matcher: '*', hooks: [{ type: 'command', command: `node "${script}"`, timeout: 60 }] };
-  const home = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
-  const file = path.join(home, 'settings.json');
+export function setupHook(mode: 'show' | 'write' | 'remove', script: string, how: { write: string; remove: string }, agent: 'claude' | 'codex' = 'claude'): number {
+  const entry =
+    agent === 'codex'
+      ? { hooks: [{ type: 'command', command: `node "${script}" --codex` }] } // no matcher: every tool
+      : { matcher: '*', hooks: [{ type: 'command', command: `node "${script}"`, timeout: 60 }] };
+  const home = agent === 'codex' ? process.env.CODEX_HOME || path.join(os.homedir(), '.codex') : process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+  const file = path.join(home, agent === 'codex' ? 'hooks.json' : 'settings.json');
   let settings: Settings = {};
   if (fs.existsSync(file)) {
     try {
@@ -55,7 +62,8 @@ export function setupHook(mode: 'show' | 'write' | 'remove', script: string, how
   fs.mkdirSync(home, { recursive: true });
   fs.writeFileSync(file, JSON.stringify(next, null, 2) + '\n');
   console.log(mode === 'write' ? `Added Bytehoven's permission hook to ${file}.` : `Removed Bytehoven's permission hook from ${file}.`);
-  console.log('New Claude Code sessions pick it up; restart running ones.');
+  if (agent === 'codex') console.log('New Codex sessions pick it up. Codex asks you to review and trust a new hook once before it runs it.');
+  else console.log('New Claude Code sessions pick it up; restart running ones.');
   return 0;
 }
 
