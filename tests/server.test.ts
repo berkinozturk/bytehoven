@@ -30,12 +30,25 @@ function request(port: number, method: string, p: string, headers: Record<string
   });
 }
 
+/** Only the status code: the event stream never ends, so don't wait for a body. */
+function status(port: number, method: string, p: string, headers: Record<string, string> = {}, body?: object) {
+  return new Promise<number>((resolve, reject) => {
+    const req = http.request({ host: '127.0.0.1', port, method, path: p, headers: { 'content-type': 'application/json', ...headers } }, (res) => {
+      resolve(res.statusCode ?? 0);
+      res.destroy();
+    });
+    req.on('error', reject);
+    if (body) req.write(JSON.stringify(body));
+    req.end();
+  });
+}
+
 /** Open the event stream and collect parsed messages. */
 function listen(port: number, host: string) {
   const msgs: Array<Record<string, unknown>> = [];
   let req!: http.ClientRequest;
   const ready = new Promise<void>((resolve) => {
-    req = http.get({ host: '127.0.0.1', port, path: '/__live/events', headers: { host } }, (res) => {
+    req = http.get({ host: '127.0.0.1', port, path: `/__live/events?k=${TOKEN}`, headers: { host } }, (res) => {
       let buf = '';
       res.on('data', (c) => {
         buf += c;
@@ -95,7 +108,7 @@ test('approving on the page answers the waiting hook', async () => {
   assert.equal(ask.session, 'sess-1');
   assert.equal(ask.folder, 'shop', 'so a session Bytehoven has not seen yet can still take a chair');
   assert.equal(ask.tool, 'Bash');
-  const d = await request(s.port, 'POST', '/__live/decision', { host: s.host, origin: `http://${s.host}` }, { id: ask.id, approved: true });
+  const d = await request(s.port, 'POST', '/__live/decision', { host: s.host, origin: `http://${s.host}`, 'x-bytehoven-key': TOKEN }, { id: ask.id, approved: true });
   assert.equal(d.status, 204);
   assert.deepEqual(JSON.parse((await hook).body), { decision: 'allow' });
   const end = await page.waitFor('permission_end');
@@ -130,12 +143,12 @@ test('the page can hand a session a new part', async () => {
   const s = await start();
   const got: string[] = [];
   s.hub.onTask = (session, task) => (got.push(session, task), { id: 'part-1' });
-  const r = await request(s.port, 'POST', '/__live/task', { host: s.host, origin: `http://${s.host}` }, { session: 'sess-1', task: 'add a line' });
+  const r = await request(s.port, 'POST', '/__live/task', { host: s.host, origin: `http://${s.host}`, 'x-bytehoven-key': TOKEN }, { session: 'sess-1', task: 'add a line' });
   assert.equal(r.status, 202);
   assert.deepEqual(JSON.parse(r.body), { id: 'part-1' });
   assert.deepEqual(got, ['sess-1', 'add a line']);
   s.hub.onTask = () => ({ error: 'busy' });
-  const busy = await request(s.port, 'POST', '/__live/task', { host: s.host, origin: `http://${s.host}` }, { session: 'sess-1', task: 'again' });
+  const busy = await request(s.port, 'POST', '/__live/task', { host: s.host, origin: `http://${s.host}`, 'x-bytehoven-key': TOKEN }, { session: 'sess-1', task: 'again' });
   assert.equal(busy.status, 409);
   await s.close();
 });
@@ -162,7 +175,7 @@ test("the box office endpoint answers the page with today's takings, and no othe
   const s = await start();
   try {
     s.hub.takings = () => ({ date: '2026-11-04', messages: 1, total: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4 }, chairs: {} });
-    const ok = await request(s.port, 'GET', '/__live/box-office', { host: s.host });
+    const ok = await request(s.port, 'GET', '/__live/box-office', { host: s.host, 'x-bytehoven-key': TOKEN });
     assert.equal(ok.status, 200);
     assert.equal(JSON.parse(ok.body).total.cacheRead, 3);
     const other = await request(s.port, 'GET', '/__live/box-office', { host: s.host, origin: 'https://evil.example' });
@@ -179,14 +192,37 @@ test('a plan is asked for and run only from the page itself', async () => {
     s.hub.onPlan = async (session, task) => (seen.push([session, task]), { parts: [{ role: 'code', task: 'do it' }] });
     s.hub.onPlanRun = (session, parts) => (seen.push([session, parts]), { ok: true });
     const self = `http://${s.host}`;
-    const plan = await request(s.port, 'POST', '/__live/plan', { host: s.host, origin: self }, { session: 'abc', task: 'make it dark' });
+    const plan = await request(s.port, 'POST', '/__live/plan', { host: s.host, origin: self, 'x-bytehoven-key': TOKEN }, { session: 'abc', task: 'make it dark' });
     assert.equal(plan.status, 200);
     assert.deepEqual(JSON.parse(plan.body), { parts: [{ role: 'code', task: 'do it' }] });
-    const run = await request(s.port, 'POST', '/__live/plan/run', { host: s.host, origin: self }, { session: 'abc', parts: [{ role: 'code', task: 'do it' }] });
+    const run = await request(s.port, 'POST', '/__live/plan/run', { host: s.host, origin: self, 'x-bytehoven-key': TOKEN }, { session: 'abc', parts: [{ role: 'code', task: 'do it' }] });
     assert.equal(run.status, 202);
     assert.deepEqual(seen, [['abc', 'make it dark'], ['abc', [{ role: 'code', task: 'do it' }]]]);
     const evil = await request(s.port, 'POST', '/__live/plan', { host: s.host, origin: 'https://evil.example' }, { session: 'abc', task: 'x' });
     assert.equal(evil.status, 403);
+  } finally {
+    await s.close();
+  }
+});
+
+test('another program on this machine, even one that fakes the page origin, gets nothing without the key', async () => {
+  const s = await start();
+  try {
+    s.hub.takings = () => ({ total: {} });
+    s.hub.onPlan = async () => ({ parts: [] });
+    s.hub.onPlanRun = () => ({ ok: true });
+    s.hub.onTask = () => ({ id: 'x' });
+    const forged = { host: s.host, origin: `http://${s.host}` };
+    const wrong = { ...forged, 'x-bytehoven-key': 'guess' };
+    for (const h of [forged, wrong]) {
+      assert.equal((await status(s.port, 'GET', '/__live/events', h)), 403, 'events');
+      assert.equal((await status(s.port, 'GET', '/__live/box-office', h)), 403, 'box office');
+      assert.equal((await status(s.port, 'POST', '/__live/decision', h, { id: 1, approved: true })), 403, 'decision');
+      assert.equal((await status(s.port, 'POST', '/__live/task', h, { session: 's', task: 'x' })), 403, 'task');
+      assert.equal((await status(s.port, 'POST', '/__live/plan', h, { session: 's', task: 'x' })), 403, 'plan');
+      assert.equal((await status(s.port, 'POST', '/__live/plan/run', h, { session: 's', parts: [] })), 403, 'plan run');
+    }
+    assert.equal((await status(s.port, 'GET', '/__live/events?k=guess', { host: s.host })), 403, 'a wrong key in the URL');
   } finally {
     await s.close();
   }

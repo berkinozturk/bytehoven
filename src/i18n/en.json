@@ -168,8 +168,9 @@
   },
   "live": {
     "empty": "No Claude Code session is running. Start one and the band starts playing.",
-    "unavailable": "Live mode needs the dev server: run npm run dev.",
-    "demoLink": "Watch the demo instead"
+    "unavailable": "Live mode runs on your own machine: start it with npx bytehoven.",
+    "demoLink": "Watch the demo instead",
+    "locked": "This page doesn’t have your key yet. Open the Live link printed in the terminal where Bytehoven is running."
   },
   "lesson": {
     "file_read": {

@@ -101,7 +101,7 @@ It starts Bytehoven on **http://127.0.0.1:5180** and opens it in your browser. P
 - The server only listens on `127.0.0.1`.
 - The package has no dependencies: it is the built page plus a small local server.
 - `--port 5190` picks another port, and `--no-open` skips opening the browser.
-- Press **Live** to hear your own Claude Code, Codex and Gemini CLI sessions.
+- For your own Claude Code, Codex and Gemini CLI sessions, use the **Live** link printed in the terminal. It carries a key; the page keeps it in your browser, so after that the **Live** button works too.
 
 For the fermata's Approve button, add the hook once:
 
@@ -118,7 +118,7 @@ It copies the hook to `~/.bytehoven/hook.mjs`, so it keeps working after npx cle
 git clone https://github.com/berkinozturk/bytehoven.git
 cd bytehoven
 npm install
-npm run dev          # http://127.0.0.1:5180, with hot reload
+npm run dev          # http://127.0.0.1:5180 with hot reload; it also prints the Live link with your key
 npm run hooks -- --write
 ```
 
@@ -140,7 +140,7 @@ bytehoven.sim.fire('mira', 'task_done')   // a little finale
 
 ### Live mode: your own Claude Code sessions
 
-Press **Live** in the top bar (or open `http://127.0.0.1:5180/?live`). The whole band is on stage, and every musician stands for a kind of work, whichever session does it:
+Open the **Live** link printed in the terminal the first time; after that, the **Live** button in the top bar is enough. The whole band is on stage, and every musician stands for a kind of work, whichever session does it:
 
 | Work | Musician |
 | --- | --- |
@@ -258,10 +258,15 @@ The script trims the silence before each attack, caps the length with a fade, pe
 ## 🔒 Privacy
 
 - **No model calls, ever.** Bytehoven costs 0 tokens.
-- **Local only.** The dev server binds to `127.0.0.1`.
+- **Local only.** Bytehoven binds to `127.0.0.1`.
+- **A key for live mode.** Other accounts on the same machine can reach `127.0.0.1` too, and a program can fake a browser's Origin header. So every live endpoint (events, Approve / Deny, new parts, plans, the box office) needs a random key.
+  - The key lives in `~/.bytehoven/key`, readable only by you.
+  - It reaches the page only through the link printed in your terminal. The page then keeps it in your browser and takes it out of the address bar.
+  - When the browser is opened for you, it goes through a file only you can read, so the key never shows up in the process list.
+  - Delete the file to get a new key.
 - **Metadata only.** Live mode reads Claude Code's local session list and transcripts **read-only** (`~/.claude/sessions`, `~/.claude/projects`), and the same way Codex CLI's and Gemini CLI's (`~/.codex/sessions`, `~/.gemini/tmp`). Each line is parsed in memory and only the tool name, a file's base name, a command's first word (`git`, `npm test`) and whether it failed are kept. Prompts, messages, thinking, file contents, full paths and full commands are dropped on the spot, never stored and never sent anywhere. A test (`tests/parse.test.ts`) checks that none of them can leak.
 - **The box office** also reads each reply's message id, time and four token counts (input, output, cache read, cache write). Nothing else; `tests/boxoffice.test.ts` checks it.
-- **The permission hook** (`~/.bytehoven/hook.mjs`) sends only the session id, the tool name and the same short target to `127.0.0.1`. The local endpoints check the `Host` header (no DNS rebinding), only accept Approve / Deny from Bytehoven's own page, and only accept the hook's call with a random token stored in `~/.bytehoven/live.json`, readable only by you.
+- **The permission hook** (`~/.bytehoven/hook.mjs`) sends only the session id, the tool name and the same short target to `127.0.0.1`. The local endpoints check the `Host` header (no DNS rebinding), only accept Approve / Deny from Bytehoven's own page, and only accept calls that carry the key (the hook reads it from `~/.bytehoven/live.json`, readable only by you).
 - **Format caveat.** These transcript formats are internal and can change between versions; if a release changes it, live mode may go quiet until Bytehoven catches up.
 
 ## 🗺 Roadmap

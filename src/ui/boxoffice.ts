@@ -1,6 +1,7 @@
 import type { ChairId } from '../core/route';
 import { t } from '../i18n';
 import { short } from './token-format';
+import { keyed } from '../core/livekey';
 
 /** The box office drawer (live mode): today's tokens per musician, from the live server. */
 
@@ -54,7 +55,7 @@ export class BoxOfficePanel {
 
   private async load() {
     try {
-      const r = await fetch('/__live/box-office');
+      const r = await fetch('/__live/box-office', { headers: keyed() });
       if (!r.ok) throw new Error(String(r.status));
       this.last = await r.json();
       this.failed = false;
