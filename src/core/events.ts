@@ -41,6 +41,8 @@ export interface AgentEvent {
   child?: AgentInfo;
   /** For joins: the musician is already on stage (no walk-in). */
   seated?: boolean;
+  /** Live mode: the session (project folder) this came from. */
+  session?: string;
   /** Wall-clock ms. */
   at: number;
 }

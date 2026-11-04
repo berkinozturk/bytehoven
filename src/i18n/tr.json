@@ -42,7 +42,7 @@
     "test": "Test",
     "research": "Araştırma",
     "docs": "Doküman",
-    "refactor": "Refactor"
+    "refactor": "Komutlar ve build"
   },
   "instrument": {
     "piano": "Piyano",
@@ -128,7 +128,7 @@
     },
     "bruno": {
       "title": "Bruno · kontrbas",
-      "body": "Bruno refactor yapıyor. Terminal komutları ritmik bir vuruş gibi duyulur. Boşta kalan ajanın müzisyeni uyuklar. Zzz."
+      "body": "Bruno komutları ve build'leri çalıştırıyor. Terminal komutları ritmik bir vuruş gibi duyulur. Yapacak işi olmayan müzisyen uyuklar. Zzz."
     },
     "otto": {
       "title": "Otto · timpani",
@@ -164,7 +164,7 @@
     "back": "Geri getir"
   },
   "live": {
-    "empty": "Çalışan bir Claude Code oturumu yok. Bir tane başlat, müzisyeni sahneye yürüsün.",
+    "empty": "Çalışan bir Claude Code oturumu yok. Bir tane başlat, orkestra çalmaya başlasın.",
     "unavailable": "Canlı mod için geliştirme sunucusu gerekir: npm run dev çalıştır.",
     "demoLink": "Onun yerine demoyu izle"
   },

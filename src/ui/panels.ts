@@ -62,7 +62,7 @@ export class Feed {
     // Turkish puts the verb last: "Otto npm test çalıştırdı"
     const body = target ? (getLang() === 'tr' ? `${target} ${verb}` : `${verb} ${target}`) : verb;
     return `<span class="dot" style="color:${css(color)}"></span>
-      <span><span class="who">${esc(info.name)}</span> ${body}</span>
+      <span><span class="who">${esc(info.name)}</span> ${body}${ev.session ? ` <span class="from">${esc(ev.session)}</span>` : ''}</span>
       <span class="when" data-at="${ev.at}">${esc(t('ago.now'))}</span>`;
   }
 

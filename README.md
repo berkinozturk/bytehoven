@@ -54,7 +54,7 @@ Agent dashboards make you *watch*. Sound notification tools make you *flinch* at
 | --- | --- |
 | Code → 🎹 Piano | Research → 🎻 Violin |
 | Tests → 🥁 Timpani | Docs → 🪈 Flute |
-| Refactor → Double bass | Sub-agents → second chairs |
+| Commands & builds → Double bass | Sub-agents → second chairs |
 
 ## 🎷 Themes
 
@@ -65,7 +65,7 @@ Pick a theme from the chip in the top bar. Each one is its own band on its own s
 | Stage | concert hall, organ, velvet curtains | brick wall, neon sign, string lights, candle-lit tables |
 | Key and tempo | D major, 92 BPM | F major, 116 BPM, swing |
 | While agents work | a soft string pad | walking bass, ride cymbal, piano comping |
-| Code · research · docs · tests · refactor | piano · violin · flute · timpani · double bass | piano · tenor sax · muted trumpet · drums · double bass |
+| Code · research · docs · tests · commands | piano · violin · flute · timpani · double bass | piano · tenor sax · muted trumpet · drums · double bass |
 | The fermata | A7 in tremolo strings → D | C7♭9 on sax, trumpet and piano, the ride swelling → Fmaj7 |
 
 Chiptune and lo-fi are next. `?theme=jazz` in the URL opens a theme directly.
@@ -114,7 +114,17 @@ bytehoven.sim.fire('mira', 'task_done')   // a little finale
 
 ### Live mode: your own Claude Code sessions
 
-Press **Live** in the top bar (or open `http://127.0.0.1:5180/?live`). Every running Claude Code session takes a chair, up to five, named after its project folder; its sub-agents join as second chairs. Start a new session and its musician walks on stage; close it and they walk off.
+Press **Live** in the top bar (or open `http://127.0.0.1:5180/?live`). The whole band is on stage, and every musician stands for a kind of work, whichever session does it:
+
+| Work | Musician |
+| --- | --- |
+| editing code | Clara · piano |
+| editing docs (`.md` and friends) | Mira · flute |
+| reading, searching, the web | Ines · violin |
+| running tests | Otto · timpani |
+| other commands and builds | Bruno · double bass |
+
+All your running sessions play the same orchestra; every line in the programme shows which project folder it came from. Sub-agents join as second chairs, and musicians with nothing to do doze off.
 
 **The fermata, with a real Approve button.** To hear the hall hold its breath when a session needs your permission, add Bytehoven's hook to Claude Code:
 
@@ -124,13 +134,13 @@ npm run hooks -- --write   # adds it to ~/.claude/settings.json (backs the file 
 npm run hooks -- --remove  # takes it out again
 ```
 
-Then start a new Claude Code session. When it asks for permission, the musician raises a hand, and **Approve** / **Deny** in Bytehoven answer Claude Code directly. Each answer covers that one request only; there is no "always allow". If Bytehoven isn't open, or you don't answer within about 50 seconds, Claude Code asks you as usual.
+Then start a new Claude Code session. When it asks for permission, the musician for that kind of work raises a hand (the card shows which project is asking), and **Approve** / **Deny** in Bytehoven answer Claude Code directly. Each answer covers that one request only; there is no "always allow". If Bytehoven isn't open, or you don't answer within about 50 seconds, Claude Code asks you as usual.
 
 The hook is documented for the terminal and VS Code. Whether the Claude desktop app runs user hooks isn't documented, so try it there before relying on it.
 
 ### Conducting: hand a musician a new part
 
-In live mode, click a musician and write a task in **New part**. Bytehoven starts a one-off `claude -p` in that session's project folder, and the musician's second chair walks on stage to play it; when it needs permission, you get the fermata.
+In live mode, click a musician and write a task in **New part**. Bytehoven starts a one-off `claude -p` in the project folder that musician last played for, and the musician's second chair walks on stage to play it; when it needs permission, you get the fermata.
 
 - `claude` is started with an argument list and the task goes to its **stdin**, so nothing you type is ever parsed as a shell command.
 - Reading, searching and editing files are allowed. Other tools follow your Claude Code permission settings, and anything that asks for permission comes to you as a fermata.

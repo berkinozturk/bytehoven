@@ -42,7 +42,7 @@
     "test": "Tests",
     "research": "Research",
     "docs": "Docs",
-    "refactor": "Refactor"
+    "refactor": "Commands & builds"
   },
   "instrument": {
     "piano": "Piano",
@@ -128,7 +128,7 @@
     },
     "bruno": {
       "title": "Bruno · double bass",
-      "body": "Bruno refactors. Shell commands sound like a rhythmic pulse. When an agent goes idle, its musician dozes off. Zzz."
+      "body": "Bruno runs commands and builds. Shell commands sound like a rhythmic pulse. When there is nothing to do, a musician dozes off. Zzz."
     },
     "otto": {
       "title": "Otto · timpani",
@@ -164,7 +164,7 @@
     "back": "Bring it back"
   },
   "live": {
-    "empty": "No Claude Code session is running. Start one and its musician walks on stage.",
+    "empty": "No Claude Code session is running. Start one and the band starts playing.",
     "unavailable": "Live mode needs the dev server: run npm run dev.",
     "demoLink": "Watch the demo instead"
   },
