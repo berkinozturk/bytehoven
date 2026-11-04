@@ -1,0 +1,275 @@
+{
+  "source": "VSCO 2 Community Edition (CC0 1.0) — Versilian Studios",
+  "groups": {
+    "piano": {
+      "pitched": true,
+      "samples": {
+        "C2": "piano/C2.mp3",
+        "C3": "piano/C3.mp3",
+        "C4": "piano/C4.mp3",
+        "C5": "piano/C5.mp3",
+        "C6": "piano/C6.mp3",
+        "G2": "piano/G2.mp3",
+        "G3": "piano/G3.mp3",
+        "G4": "piano/G4.mp3",
+        "G5": "piano/G5.mp3",
+        "G6": "piano/G6.mp3"
+      }
+    },
+    "harp": {
+      "pitched": true,
+      "samples": {
+        "A2": "harp/A2.mp3",
+        "A4": "harp/A4.mp3",
+        "A6": "harp/A6.mp3",
+        "B1": "harp/B1.mp3",
+        "B3": "harp/B3.mp3",
+        "B5": "harp/B5.mp3",
+        "B6": "harp/B6.mp3",
+        "C3": "harp/C3.mp3",
+        "C5": "harp/C5.mp3",
+        "D2": "harp/D2.mp3",
+        "D4": "harp/D4.mp3",
+        "D6": "harp/D6.mp3",
+        "E3": "harp/E3.mp3",
+        "E5": "harp/E5.mp3",
+        "F2": "harp/F2.mp3",
+        "F4": "harp/F4.mp3",
+        "F6": "harp/F6.mp3",
+        "G3": "harp/G3.mp3",
+        "G5": "harp/G5.mp3"
+      }
+    },
+    "glock": {
+      "pitched": true,
+      "samples": {
+        "C5": "glock/C5.mp3",
+        "C6": "glock/C6.mp3",
+        "C7": "glock/C7.mp3",
+        "G4": "glock/G4.mp3",
+        "G5": "glock/G5.mp3",
+        "G6": "glock/G6.mp3"
+      }
+    },
+    "violin": {
+      "pitched": true,
+      "samples": {
+        "A3": "violin/A3.mp3",
+        "A4": "violin/A4.mp3",
+        "A5": "violin/A5.mp3",
+        "A6": "violin/A6.mp3",
+        "C4": "violin/C4.mp3",
+        "C5": "violin/C5.mp3",
+        "C6": "violin/C6.mp3",
+        "C7": "violin/C7.mp3",
+        "E4": "violin/E4.mp3",
+        "E5": "violin/E5.mp3",
+        "E6": "violin/E6.mp3",
+        "G3": "violin/G3.mp3",
+        "G4": "violin/G4.mp3",
+        "G5": "violin/G5.mp3",
+        "G6": "violin/G6.mp3"
+      }
+    },
+    "violin_spic": {
+      "pitched": true,
+      "samples": {
+        "A3": "violin_spic/A3.mp3",
+        "A4": "violin_spic/A4.mp3",
+        "A5": "violin_spic/A5.mp3",
+        "A6": "violin_spic/A6.mp3",
+        "C4": "violin_spic/C4.mp3",
+        "C5": "violin_spic/C5.mp3",
+        "C6": "violin_spic/C6.mp3",
+        "C7": "violin_spic/C7.mp3",
+        "E4": "violin_spic/E4.mp3",
+        "E5": "violin_spic/E5.mp3",
+        "E6": "violin_spic/E6.mp3",
+        "G3": "violin_spic/G3.mp3",
+        "G4": "violin_spic/G4.mp3",
+        "G5": "violin_spic/G5.mp3",
+        "G6": "violin_spic/G6.mp3"
+      }
+    },
+    "violin_pizz": {
+      "pitched": true,
+      "samples": {
+        "A3": "violin_pizz/A3.mp3",
+        "A4": "violin_pizz/A4.mp3",
+        "A5": "violin_pizz/A5.mp3",
+        "A6": "violin_pizz/A6.mp3",
+        "C4": "violin_pizz/C4.mp3",
+        "C5": "violin_pizz/C5.mp3",
+        "E4": "violin_pizz/E4.mp3",
+        "E5": "violin_pizz/E5.mp3",
+        "E6": "violin_pizz/E6.mp3",
+        "G3": "violin_pizz/G3.mp3",
+        "G4": "violin_pizz/G4.mp3",
+        "G5": "violin_pizz/G5.mp3"
+      }
+    },
+    "strings_sus": {
+      "pitched": true,
+      "samples": {
+        "A3": "strings_sus/A3.mp3",
+        "A4": "strings_sus/A4.mp3",
+        "B3": "strings_sus/B3.mp3",
+        "B5": "strings_sus/B5.mp3",
+        "C5": "strings_sus/C5.mp3",
+        "D4": "strings_sus/D4.mp3",
+        "D6": "strings_sus/D6.mp3",
+        "E5": "strings_sus/E5.mp3",
+        "F#4": "strings_sus/Fs4.mp3",
+        "G3": "strings_sus/G3.mp3",
+        "G5": "strings_sus/G5.mp3"
+      }
+    },
+    "strings_trem": {
+      "pitched": true,
+      "samples": {
+        "A3": "strings_trem/A3.mp3",
+        "A4": "strings_trem/A4.mp3",
+        "B3": "strings_trem/B3.mp3",
+        "B5": "strings_trem/B5.mp3",
+        "C5": "strings_trem/C5.mp3",
+        "D4": "strings_trem/D4.mp3",
+        "D6": "strings_trem/D6.mp3",
+        "E5": "strings_trem/E5.mp3",
+        "F#4": "strings_trem/Fs4.mp3",
+        "G3": "strings_trem/G3.mp3",
+        "G5": "strings_trem/G5.mp3"
+      }
+    },
+    "cello_trem": {
+      "pitched": true,
+      "samples": {
+        "A3": "cello_trem/A3.mp3",
+        "B2": "cello_trem/B2.mp3",
+        "B4": "cello_trem/B4.mp3",
+        "C4": "cello_trem/C4.mp3",
+        "D3": "cello_trem/D3.mp3",
+        "D5": "cello_trem/D5.mp3",
+        "E2": "cello_trem/E2.mp3",
+        "E4": "cello_trem/E4.mp3",
+        "F3": "cello_trem/F3.mp3",
+        "F5": "cello_trem/F5.mp3",
+        "G2": "cello_trem/G2.mp3",
+        "G4": "cello_trem/G4.mp3"
+      }
+    },
+    "bass_pizz": {
+      "pitched": true,
+      "samples": {
+        "A#1": "bass_pizz/As1.mp3",
+        "A2": "bass_pizz/A2.mp3",
+        "B3": "bass_pizz/B3.mp3",
+        "C#3": "bass_pizz/Cs3.mp3",
+        "C2": "bass_pizz/C2.mp3",
+        "D2": "bass_pizz/D2.mp3",
+        "E1": "bass_pizz/E1.mp3",
+        "E2": "bass_pizz/E2.mp3",
+        "E3": "bass_pizz/E3.mp3",
+        "F#1": "bass_pizz/Fs1.mp3",
+        "F#2": "bass_pizz/Fs2.mp3",
+        "G#2": "bass_pizz/Gs2.mp3",
+        "G#3": "bass_pizz/Gs3.mp3",
+        "G1": "bass_pizz/G1.mp3"
+      }
+    },
+    "bass_sus": {
+      "pitched": true,
+      "samples": {
+        "A#1": "bass_sus/As1.mp3",
+        "A2": "bass_sus/A2.mp3",
+        "B3": "bass_sus/B3.mp3",
+        "C#3": "bass_sus/Cs3.mp3",
+        "C2": "bass_sus/C2.mp3",
+        "D2": "bass_sus/D2.mp3",
+        "E2": "bass_sus/E2.mp3",
+        "E3": "bass_sus/E3.mp3",
+        "F#1": "bass_sus/Fs1.mp3",
+        "F#2": "bass_sus/Fs2.mp3",
+        "G#2": "bass_sus/Gs2.mp3",
+        "G#3": "bass_sus/Gs3.mp3",
+        "G1": "bass_sus/G1.mp3"
+      }
+    },
+    "flute_stac": {
+      "pitched": true,
+      "samples": {
+        "A4": "flute_stac/A4.mp3",
+        "A5": "flute_stac/A5.mp3",
+        "A6": "flute_stac/A6.mp3",
+        "C5": "flute_stac/C5.mp3",
+        "C6": "flute_stac/C6.mp3",
+        "C7": "flute_stac/C7.mp3",
+        "E5": "flute_stac/E5.mp3",
+        "E6": "flute_stac/E6.mp3"
+      }
+    },
+    "flute_sus": {
+      "pitched": true,
+      "samples": {
+        "A4": "flute_sus/A4.mp3",
+        "A5": "flute_sus/A5.mp3",
+        "A6": "flute_sus/A6.mp3",
+        "C4": "flute_sus/C4.mp3",
+        "C5": "flute_sus/C5.mp3",
+        "C6": "flute_sus/C6.mp3",
+        "C7": "flute_sus/C7.mp3",
+        "E4": "flute_sus/E4.mp3",
+        "E5": "flute_sus/E5.mp3",
+        "E6": "flute_sus/E6.mp3"
+      }
+    },
+    "timp": {
+      "pitched": true,
+      "samples": {
+        "F#1": "timp/Fs1.mp3",
+        "A#1": "timp/As1.mp3",
+        "C#2": "timp/Cs2.mp3",
+        "E2": "timp/E2.mp3",
+        "F#2": "timp/Fs2.mp3"
+      }
+    },
+    "timp_roll": {
+      "pitched": true,
+      "samples": {
+        "B1": "timp_roll/B1.mp3",
+        "C#2": "timp_roll/Cs2.mp3"
+      }
+    },
+    "snare": {
+      "pitched": false,
+      "samples": {
+        "snare1_f_1": "snare/snare1_f_1.mp3",
+        "snare1_mp_1": "snare/snare1_mp_1.mp3",
+        "snare1_pp_1": "snare/snare1_pp_1.mp3",
+        "snare1_rimshot_f": "snare/snare1_rimshot_f.mp3"
+      }
+    },
+    "bdrum": {
+      "pitched": false,
+      "samples": {
+        "bdrum_f_1": "bdrum/bdrum_f_1.mp3",
+        "bdrum_mp_1": "bdrum/bdrum_mp_1.mp3",
+        "bdrum_pp_1": "bdrum/bdrum_pp_1.mp3"
+      }
+    },
+    "cymbal": {
+      "pitched": false,
+      "samples": {
+        "cymbal_crash1_mf_rr1": "cymbal/cymbal_crash1_mf_rr1.mp3",
+        "suscymb1_cresc_median_v1": "cymbal/suscymb1_cresc_median_v1.mp3",
+        "suscymb1_hit_mp_rr1": "cymbal/suscymb1_hit_mp_rr1.mp3"
+      }
+    },
+    "triangle": {
+      "pitched": false,
+      "samples": {
+        "triangle3_hit_v1_rr1": "triangle/triangle3_hit_v1_rr1.mp3",
+        "triangle3_hit_v1_rr2": "triangle/triangle3_hit_v1_rr2.mp3"
+      }
+    }
+  }
+}

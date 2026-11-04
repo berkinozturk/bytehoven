@@ -1,0 +1,96 @@
+{
+  "app": {
+    "tagline": "An orchestra for your AI coding agents",
+    "demo": "Demo",
+    "theme": "Orchestra"
+  },
+  "start": {
+    "button": "Begin the concert",
+    "loading": "Tuning the orchestra… {pct}%",
+    "note": "Sound on. Demo mode: five simulated agents, nothing is connected yet.",
+    "privacy": "Bytehoven never calls a model. It only listens."
+  },
+  "top": {
+    "volume": "Master volume",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "language": "Language"
+  },
+  "side": {
+    "tension": "Tension",
+    "calm": "calm",
+    "rising": "rising",
+    "held": "held breath",
+    "feed": "Programme",
+    "empty": "The orchestra is tuning…"
+  },
+  "score": {
+    "title": "Live score"
+  },
+  "fermata": {
+    "waiting": "{name} is waiting for your permission",
+    "approve": "Approve",
+    "deny": "Deny",
+    "hint": "Enter to approve · Esc to deny"
+  },
+  "role": {
+    "code": "Code",
+    "test": "Tests",
+    "research": "Research",
+    "docs": "Docs",
+    "refactor": "Refactor"
+  },
+  "instrument": {
+    "piano": "Piano",
+    "percussion": "Timpani",
+    "violin": "Violin",
+    "flute": "Flute",
+    "contrabass": "Double bass"
+  },
+  "state": {
+    "playing": "playing",
+    "tuning": "tuning up — thinking",
+    "reading": "turning pages — reading",
+    "idle": "resting",
+    "sleeping": "dozing off",
+    "waiting": "hand raised — needs permission",
+    "error": "a sour chord — something failed",
+    "walking": "walking on stage"
+  },
+  "event": {
+    "file_read": "read",
+    "file_write": "wrote",
+    "bash": "ran",
+    "tool_start": "used",
+    "test_pass": "tests passed",
+    "test_fail": "tests failed",
+    "error": "error",
+    "thinking": "is thinking",
+    "idle": "went quiet",
+    "permission_request": "asks to run",
+    "approved": "was allowed to run",
+    "denied": "was not allowed to run",
+    "subagent_join": "called in {child}",
+    "subagent_leave": "{child} took a bow",
+    "task_done": "finished a part"
+  },
+  "detail": {
+    "session": "Session",
+    "role": "Role",
+    "state": "Now",
+    "subagents": "Second chairs",
+    "none": "none",
+    "recent": "Recent passages",
+    "volume": "Volume",
+    "mute": "Mute this musician",
+    "task": "Hand {name} a new part",
+    "taskPh": "Describe the task…",
+    "send": "Hand over the score",
+    "demoNote": "Demo mode: the score is handed over on stage, but no agent is run.",
+    "close": "Close"
+  },
+  "ago": {
+    "now": "now",
+    "s": "{n}s"
+  }
+}

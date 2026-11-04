@@ -1,0 +1,96 @@
+{
+  "app": {
+    "tagline": "Yapay zekâ kodlama ajanların için bir orkestra",
+    "demo": "Demo",
+    "theme": "Orkestra"
+  },
+  "start": {
+    "button": "Konseri başlat",
+    "loading": "Orkestra akort ediliyor… %{pct}",
+    "note": "Sesi açın. Demo modu: beş simüle ajan, henüz hiçbir şeye bağlı değil.",
+    "privacy": "Bytehoven hiçbir modeli çağırmaz. Sadece dinler."
+  },
+  "top": {
+    "volume": "Ana ses",
+    "mute": "Sessize al",
+    "unmute": "Sesi aç",
+    "language": "Dil"
+  },
+  "side": {
+    "tension": "Gerilim",
+    "calm": "sakin",
+    "rising": "yükseliyor",
+    "held": "nefesler tutuldu",
+    "feed": "Program",
+    "empty": "Orkestra akort ediyor…"
+  },
+  "score": {
+    "title": "Canlı partisyon"
+  },
+  "fermata": {
+    "waiting": "{name} izninizi bekliyor",
+    "approve": "Onayla",
+    "deny": "Reddet",
+    "hint": "Onay için Enter · Ret için Esc"
+  },
+  "role": {
+    "code": "Kod",
+    "test": "Test",
+    "research": "Araştırma",
+    "docs": "Doküman",
+    "refactor": "Refactor"
+  },
+  "instrument": {
+    "piano": "Piyano",
+    "percussion": "Timpani",
+    "violin": "Keman",
+    "flute": "Flüt",
+    "contrabass": "Kontrbas"
+  },
+  "state": {
+    "playing": "çalıyor",
+    "tuning": "akort ediyor — düşünüyor",
+    "reading": "sayfa çeviriyor — okuyor",
+    "idle": "dinleniyor",
+    "sleeping": "uyukluyor",
+    "waiting": "elini kaldırdı — izin bekliyor",
+    "error": "uyumsuz akor — bir şey başarısız",
+    "walking": "sahneye yürüyor"
+  },
+  "event": {
+    "file_read": "okudu",
+    "file_write": "yazdı",
+    "bash": "çalıştırdı",
+    "tool_start": "kullandı",
+    "test_pass": "testler geçti",
+    "test_fail": "testler kaldı",
+    "error": "hata",
+    "thinking": "düşünüyor",
+    "idle": "sessizleşti",
+    "permission_request": "çalıştırmak için izin istiyor",
+    "approved": "çalıştırmasına izin verildi",
+    "denied": "çalıştırmasına izin verilmedi",
+    "subagent_join": "{child} sahneye çağırdı",
+    "subagent_leave": "{child} selam verip ayrıldı",
+    "task_done": "bir bölümü bitirdi"
+  },
+  "detail": {
+    "session": "Oturum",
+    "role": "Rol",
+    "state": "Şu an",
+    "subagents": "İkinci sandalyeler",
+    "none": "yok",
+    "recent": "Son pasajlar",
+    "volume": "Ses",
+    "mute": "Bu müzisyeni sessize al",
+    "task": "{name} için yeni bir partisyon",
+    "taskPh": "Görevi anlatın…",
+    "send": "Partisyonu ver",
+    "demoNote": "Demo modu: partisyon sahnede verilir ama hiçbir ajan çalıştırılmaz.",
+    "close": "Kapat"
+  },
+  "ago": {
+    "now": "şimdi",
+    "s": "{n} sn"
+  }
+}

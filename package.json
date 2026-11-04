@@ -1,0 +1,42 @@
+{
+  "name": "bytehoven",
+  "version": "0.1.0",
+  "description": "An animated orchestra for your AI coding agents \u2014 hear what they are doing.",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "prepare-samples": "node scripts/prepare-samples.mjs"
+  },
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "pixi-filters": "^6.1.5",
+    "pixi.js": "^8.22.0",
+    "tone": "^15.1.22"
+  },
+  "devDependencies": {
+    "@breezystack/lamejs": "^1.2.7",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "private": false,
+  "keywords": [
+    "claude-code",
+    "ai-agents",
+    "sonification",
+    "visualizer",
+    "orchestra",
+    "pixel-art",
+    "pixijs",
+    "tonejs"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/berkinozturk/bytehoven.git"
+  },
+  "homepage": "https://github.com/berkinozturk/bytehoven#readme"
+}

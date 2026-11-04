@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>Bytehoven — an orchestra for your AI agents</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="top">
+        <div class="brand">
+          <svg class="mark" viewBox="0 0 32 20" aria-hidden="true">
+            <path d="M3 16 C 3 4, 29 4, 29 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+            <circle cx="16" cy="14" r="2.6" fill="currentColor" />
+          </svg>
+          <span class="word">Bytehoven</span>
+          <span class="chip" data-i18n="app.demo">Demo</span>
+          <span class="chip ghost" data-i18n="app.theme">Orchestra</span>
+        </div>
+        <div class="meter-line" id="chord-line" aria-live="off">
+          <span class="tempo">♩ = 92</span><span class="sep">·</span><span id="chord">D</span>
+        </div>
+        <div class="controls">
+          <label class="vol" data-i18n-title="top.volume">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" /><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+            <input id="master" type="range" min="0" max="1" step="0.01" value="0.85" />
+          </label>
+          <button id="mute" class="icon-btn" data-i18n-title="top.mute" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" /><path class="x" d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+          </button>
+          <div class="lang" role="group" data-i18n-title="top.language">
+            <button data-lang="en">EN</button><button data-lang="tr">TR</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="stage-wrap">
+        <div id="stage"></div>
+
+        <div id="start" class="start">
+          <div class="start-inner">
+            <svg class="start-mark" viewBox="0 0 32 20" aria-hidden="true">
+              <path d="M3 16 C 3 4, 29 4, 29 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              <circle cx="16" cy="14" r="2" fill="currentColor" />
+            </svg>
+            <h1>Bytehoven</h1>
+            <p class="tagline" data-i18n="app.tagline"></p>
+            <button id="begin" class="begin" disabled>
+              <span class="fill"></span>
+              <span class="label" id="begin-label"></span>
+            </button>
+            <p class="small" data-i18n="start.note"></p>
+            <p class="small dim" data-i18n="start.privacy"></p>
+          </div>
+        </div>
+
+        <div id="permission" class="permission" hidden>
+          <div class="perm-title" id="perm-title"></div>
+          <div class="perm-cmd"><span id="perm-tool"></span> <code id="perm-target"></code></div>
+          <div class="perm-actions">
+            <button id="approve" class="btn gold" data-i18n="fermata.approve">Approve</button>
+            <button id="deny" class="btn ghost" data-i18n="fermata.deny">Deny</button>
+          </div>
+          <div class="perm-hint" data-i18n="fermata.hint"></div>
+        </div>
+      </main>
+
+      <aside class="side">
+        <section class="tension">
+          <div class="side-head">
+            <h2 data-i18n="side.tension">Tension</h2>
+            <span id="tension-word" class="dim"></span>
+          </div>
+          <div class="gauge">
+            <div class="gauge-fill" id="gauge-fill"></div>
+            <div class="gauge-glow" id="gauge-glow"></div>
+          </div>
+          <canvas id="tension-spark" width="560" height="80"></canvas>
+        </section>
+        <section class="feed">
+          <div class="side-head"><h2 data-i18n="side.feed">Programme</h2></div>
+          <ol id="feed"></ol>
+        </section>
+        <section id="detail" class="detail" hidden></section>
+      </aside>
+
+      <footer class="score">
+        <div class="score-head"><h2 data-i18n="score.title">Live score</h2></div>
+        <canvas id="score"></canvas>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
