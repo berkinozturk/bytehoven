@@ -1,5 +1,6 @@
 import { Emitter } from './bus';
 import { DEFAULT_INSTRUMENT, makeEvent, type AgentEvent, type AgentEventKind, type AgentInfo, type Role } from './events';
+import { LIVE_KEY, keyed } from './livekey';
 import { DEFAULT_CAST, roleOf } from './mixer';
 import { chairFor, chairForTool, type ChairId } from './route';
 
@@ -62,6 +63,8 @@ export interface LiveStatus {
   connected: boolean;
   /** The page is served without the live server (e.g. a static build). */
   unavailable: boolean;
+  /** The live server is there, but this page doesn't have its key. */
+  locked: boolean;
   sessions: number;
 }
 
@@ -84,6 +87,8 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
   private paused = false;
   private connected = false;
   private failures = 0;
+  private locked = false;
+  private unreachable = false;
   /** Who plays which kind of work (from the mixer). */
   private cast: Record<Role, ChairId>;
 
@@ -103,7 +108,8 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
 
   start() {
     if (this.source) return;
-    const es = new EventSource('/__live/events');
+    if (!LIVE_KEY) return void this.diagnose(); // no key: is there a live server here at all?
+    const es = new EventSource(`/__live/events?k=${encodeURIComponent(LIVE_KEY)}`);
     this.source = es;
     es.onmessage = (e) => {
       this.failures = 0;
@@ -116,7 +122,11 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     es.onerror = () => {
       this.connected = false;
       this.failures++;
-      this.report();
+      // the browser gives up for good on a 403 or a 404: find out which, and say so
+      if (es.readyState === EventSource.CLOSED) {
+        this.source = null;
+        void this.diagnose();
+      } else this.report();
     };
   }
 
@@ -128,7 +138,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     const id = this.waiting.get(agentId);
     if (id === undefined) return;
     this.waiting.delete(agentId);
-    fetch('/__live/decision', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, approved }) }).catch(() => {});
+    fetch('/__live/decision', { method: 'POST', headers: keyed({ 'content-type': 'application/json' }), body: JSON.stringify({ id, approved }) }).catch(() => {});
     this.emit('event', makeEvent(agentId, 'permission_resolved', { approved }));
   }
 
@@ -139,7 +149,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     const parent = (this.infos.get(musicianId)?.parentId ?? musicianId) as ChairId;
     this.handing = parent;
     try {
-      const r = await fetch('/__live/task', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ session, task: text }) });
+      const r = await fetch('/__live/task', { method: 'POST', headers: keyed({ 'content-type': 'application/json' }), body: JSON.stringify({ session, task: text }) });
       return r.status === 202 ? 'ok' : r.status === 409 ? 'busy' : 'error';
     } catch {
       return 'error';
@@ -156,7 +166,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     const session = this.sessionFor(musicianId);
     if (!session) return { error: 'unknown' };
     try {
-      const r = await fetch('/__live/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ session, task: text }) });
+      const r = await fetch('/__live/plan', { method: 'POST', headers: keyed({ 'content-type': 'application/json' }), body: JSON.stringify({ session, task: text }) });
       return await r.json();
     } catch {
       return { error: 'failed' };
@@ -168,7 +178,7 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     const session = this.sessionFor(musicianId);
     if (!session) return 'error';
     try {
-      const r = await fetch('/__live/plan/run', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ session, parts }) });
+      const r = await fetch('/__live/plan/run', { method: 'POST', headers: keyed({ 'content-type': 'application/json' }), body: JSON.stringify({ session, parts }) });
       return r.status === 202 ? 'ok' : r.status === 409 ? 'busy' : 'error';
     } catch {
       return 'error';
@@ -180,9 +190,25 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     return this.cast[role];
   }
 
+  /** Why the stream closed: a wrong key (403), or no live server here at all. */
+  private async diagnose() {
+    try {
+      const r = await fetch(`/__live/events?k=${encodeURIComponent(LIVE_KEY ?? '')}`, { signal: AbortSignal.timeout(4000) });
+      void r.body?.cancel();
+      // a static host may answer any address with the page itself: only a real stream counts
+      const stream = r.ok && (r.headers.get('content-type') ?? '').startsWith('text/event-stream');
+      this.locked = r.status === 403;
+      this.unreachable = !stream && !this.locked;
+      if (stream && LIVE_KEY) setTimeout(() => this.start(), 2000); // it was a hiccup: reconnect
+    } catch {
+      this.unreachable = true;
+    }
+    this.report();
+  }
+
   private report() {
     // A static build has no live server: the stream fails before it ever opens.
-    this.emit('status', { connected: this.connected, unavailable: !this.connected && this.failures > 2, sessions: this.sessions.size });
+    this.emit('status', { connected: this.connected, unavailable: this.unreachable || (!this.connected && this.failures > 2), locked: this.locked, sessions: this.sessions.size });
   }
 
   /** The whole band takes its seats once, as soon as the live server answers. */

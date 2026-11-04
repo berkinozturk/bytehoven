@@ -14,7 +14,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { hookMode, setupHook } from '../server/hooks.ts';
-import { bytehovenHome, startLive } from '../server/live/start.ts';
+import { bytehovenHome, liveUrl, startLive } from '../server/live/start.ts';
 import { serve } from '../server/serve.ts';
 
 const here = import.meta.dirname;
@@ -42,8 +42,10 @@ if (args[0] === 'hooks') {
   const live = startLive(port);
   const server = serve({ root: path.join(here, '..', 'dist'), port, live });
   server.on('listening', () => {
-    console.log(`\n  𝄐 Bytehoven is playing at ${url}\n\n  Demo: ${url}\n  Live: ${url}?live\n\n  Ctrl+C to stop.\n`);
-    if (!args.includes('--no-open')) open(url);
+    // the live link carries the key: it opens your sessions, so it is shown only here
+    const liveAt = liveUrl(port, live.key);
+    console.log(`\n  𝄐 Bytehoven is playing at ${url}\n\n  Demo: ${url}\n  Live: ${liveAt}\n\n  Ctrl+C to stop.\n`);
+    if (!args.includes('--no-open')) open(liveAt);
   });
   server.on('error', (e: NodeJS.ErrnoException) => {
     live.close();
@@ -56,9 +58,20 @@ if (args[0] === 'hooks') {
   process.on('SIGTERM', stop);
 }
 
-/** Open the page in the default browser: an argument list, never a shell command line. */
+/**
+ * Open the page in the default browser: an argument list, never a shell command line.
+ * The link holds the key, and other accounts can see a program's arguments (`ps`), so the
+ * browser gets a small file only you can read, which forwards to the link.
+ */
 function open(url: string) {
-  const [cmd, argv] = process.platform === 'darwin' ? ['open', [url]] : process.platform === 'win32' ? ['explorer.exe', [url]] : ['xdg-open', [url]];
+  const file = path.join(bytehovenHome(), 'open.html');
+  try {
+    fs.writeFileSync(file, `<!doctype html><meta charset="utf-8"><meta name="referrer" content="no-referrer"><script>location.replace(${JSON.stringify(url)})</script>`, { mode: 0o600 });
+    fs.chmodSync(file, 0o600);
+  } catch {
+    return; // the link is printed above
+  }
+  const [cmd, argv] = process.platform === 'darwin' ? ['open', [file]] : process.platform === 'win32' ? ['explorer.exe', [file]] : ['xdg-open', [file]];
   try {
     spawn(cmd, argv, { stdio: 'ignore', detached: true }).on('error', () => {}).unref();
   } catch {

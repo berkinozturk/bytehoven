@@ -18,8 +18,30 @@ import { SessionReader } from './reader.ts';
 export const bytehovenHome = () => process.env.BYTEHOVEN_HOME || path.join(os.homedir(), '.bytehoven');
 export const liveFile = () => path.join(bytehovenHome(), 'live.json');
 
-export function startLive(port: number): { handle: (req: IncomingMessage, res: ServerResponse, next: () => void) => void; close: () => void } {
-  const token = crypto.randomBytes(24).toString('hex');
+/**
+ * The key: a random secret in `~/.bytehoven/key`, readable only by you. It stays
+ * the same between runs, so a page you opened once keeps working; delete the
+ * file to make a new one.
+ */
+export function liveKey(): string {
+  const file = path.join(bytehovenHome(), 'key');
+  try {
+    const k = fs.readFileSync(file, 'utf8').trim();
+    if (/^[0-9a-f]{48}$/.test(k)) return k;
+  } catch {
+    /* not made yet */
+  }
+  fs.mkdirSync(bytehovenHome(), { recursive: true, mode: 0o700 });
+  const k = crypto.randomBytes(24).toString('hex');
+  fs.writeFileSync(file, k, { mode: 0o600 });
+  return k;
+}
+
+/** The address that opens live mode with the key (print it only where only you can see it). */
+export const liveUrl = (port: number, key: string) => `http://127.0.0.1:${port}/?live&k=${key}`;
+
+export function startLive(port: number): { key: string; handle: (req: IncomingMessage, res: ServerResponse, next: () => void) => void; close: () => void } {
+  const token = liveKey();
   const file = liveFile();
   fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
   fs.writeFileSync(file, JSON.stringify({ port, token }), { mode: 0o600 });
@@ -57,6 +79,7 @@ export function startLive(port: number): { handle: (req: IncomingMessage, res: S
   readers.forEach((r) => r.start());
 
   return {
+    key: token,
     handle: (req, res, next) => hub.handle(req, res, next),
     close: () => {
       readers.forEach((r) => r.stop());

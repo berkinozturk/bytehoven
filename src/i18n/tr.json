@@ -168,8 +168,9 @@
   },
   "live": {
     "empty": "Çalışan bir Claude Code oturumu yok. Bir tane başlat, orkestra çalmaya başlasın.",
-    "unavailable": "Canlı mod için geliştirme sunucusu gerekir: npm run dev çalıştır.",
-    "demoLink": "Onun yerine demoyu izle"
+    "unavailable": "Canlı mod kendi bilgisayarında çalışır: npx bytehoven ile başlat.",
+    "demoLink": "Onun yerine demoyu izle",
+    "locked": "Bu sayfada henüz anahtarın yok. Bytehoven’ın çalıştığı terminalde yazan Canlı bağlantısını aç."
   },
   "lesson": {
     "file_read": {

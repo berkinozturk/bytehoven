@@ -533,7 +533,7 @@ async function main() {
   // ---- live mode: say so when the stage is empty or the live server is missing
   const liveNote = $('#live-note');
   live?.on('status', (st) => {
-    const key = st.unavailable ? 'live.unavailable' : st.connected && st.sessions === 0 ? 'live.empty' : '';
+    const key = st.locked ? 'live.locked' : st.unavailable ? 'live.unavailable' : st.connected && st.sessions === 0 ? 'live.empty' : '';
     liveNote.hidden = !key;
     if (key) {
       const text = $('#live-note-text');

@@ -31,7 +31,7 @@ function get(port: number, p: string, host = `127.0.0.1:${port}`) {
 test('serves the built page and its files, on 127.0.0.1 only, and nothing outside it', async () => {
   const root = site();
   let liveHits = 0;
-  const server = serve({ root, port: 0, live: { handle: (req, res, next) => (req.url?.startsWith('/__live/') ? (liveHits++, res.writeHead(204).end()) : next()), close() {} } });
+  const server = serve({ root, port: 0, live: { key: 'k', handle: (req, res, next) => (req.url?.startsWith('/__live/') ? (liveHits++, res.writeHead(204).end()) : next()), close() {} } });
   await new Promise((r) => server.once('listening', r));
   const { address, port } = server.address() as AddressInfo;
   try {

@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { LiveMsg, LiveSession } from './reader.ts';
 
@@ -12,9 +13,15 @@ import type { LiveMsg, LiveSession } from './reader.ts';
  *   POST /__live/plan      the conductor asks for a plan first; starts nothing (same origin only)
  *   POST /__live/plan/run  runs a plan the page showed you, part by part (same origin only)
  *
- * Guards: the Host header must be this machine at this port (stops DNS rebinding),
- * the decision endpoint only accepts the page's own origin (stops other websites),
- * and the hook endpoint needs a random token that only this user can read.
+ * Guards:
+ *   - the Host header must be this machine at this port (stops DNS rebinding);
+ *   - the page's endpoints only accept the page's own origin (stops other websites);
+ *   - every endpoint needs the key, a random secret only this user can read
+ *     (`~/.bytehoven/key`). The hook sends it as x-bytehoven-token; the page got it
+ *     from the link printed in your terminal and sends it as x-bytehoven-key (or
+ *     `?k=` for the event stream, which can't set headers). 127.0.0.1 is open to
+ *     every account on this machine, and a program can fake an Origin header, so
+ *     the key is what keeps other people on a shared machine out.
  */
 
 export type PageMsg =
@@ -95,12 +102,17 @@ export class LiveHub {
   }
 
   handle(req: IncomingMessage, res: ServerResponse, next: () => void) {
-    const url = req.url ?? '';
-    if (!url.startsWith('/__live/')) return next();
+    const full = req.url ?? '';
+    if (!full.startsWith('/__live/')) return next();
     const host = req.headers.host ?? '';
     if (host !== `127.0.0.1:${this.port}` && host !== `localhost:${this.port}`) return deny(res);
     const origin = req.headers.origin;
     const self = `http://${host}`;
+    const [url, query = ''] = full.split('?', 2);
+    if (url !== '/__live/hook') {
+      const key = req.headers['x-bytehoven-key'] ?? new URLSearchParams(query).get('k') ?? '';
+      if (!same(String(key), this.token)) return deny(res);
+    }
 
     if (req.method === 'GET' && url === '/__live/events') {
       if (origin && origin !== self) return deny(res);
@@ -147,7 +159,7 @@ export class LiveHub {
       });
     }
     if (req.method === 'POST' && url === '/__live/hook') {
-      if (req.headers['x-bytehoven-token'] !== this.token || !isJson(req)) return deny(res);
+      if (!same(String(req.headers['x-bytehoven-token'] ?? ''), this.token) || !isJson(req)) return deny(res);
       return readBody(req, res, (b) => this.onHook(b, req, res));
     }
     res.writeHead(404).end();
@@ -195,6 +207,13 @@ function write(res: ServerResponse, msg: PageMsg) {
 
 function json(res: ServerResponse, body: object) {
   res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(body));
+}
+
+/** Compare secrets in constant time. */
+function same(a: string, b: string) {
+  const x = Buffer.from(a),
+    y = Buffer.from(b);
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
 
 function deny(res: ServerResponse) {
