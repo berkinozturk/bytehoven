@@ -9,6 +9,8 @@ import type { LiveMsg, LiveSession } from './reader.ts';
  *   POST /__live/decision  Approve / Deny from the page (same origin only)
  *   POST /__live/task      the conductor hands a session a new part (same origin only)
  *   GET  /__live/box-office today's tokens per musician (same origin only)
+ *   POST /__live/plan      the conductor asks for a plan first; starts nothing (same origin only)
+ *   POST /__live/plan/run  runs a plan the page showed you, part by part (same origin only)
  *
  * Guards: the Host header must be this machine at this port (stops DNS rebinding),
  * the decision endpoint only accepts the page's own origin (stops other websites),
@@ -20,8 +22,8 @@ export type PageMsg =
   | { type: 'hello'; sessions: LiveSession[]; permissions: Permission[]; recent: Recent[] }
   | ({ type: 'permission' } & Permission)
   | { type: 'permission_end'; id: number; approved?: boolean }
-  /** A part handed out from the page: `child` is the new run's session id. */
-  | { type: 'part'; session: string; child: string }
+  /** A part handed out from the page: `child` is the new run's session id; `role` when it is part of a plan. */
+  | { type: 'part'; session: string; child: string; role?: string }
   | { type: 'part_end'; child: string };
 
 export interface Permission {
@@ -54,6 +56,9 @@ export class LiveHub {
   sessions: () => LiveSession[] = () => [];
   /** Starts a part for a session; set by the plugin. */
   onTask: ((session: string, task: string) => { id: string } | { error: string }) | null = null;
+  /** Planning first; set by the plugin. */
+  onPlan: ((session: string, task: string) => Promise<object>) | null = null;
+  onPlanRun: ((session: string, parts: unknown) => { ok: true } | { error: string }) | null = null;
   /** Today's tokens per musician; set by the plugin. */
   takings: (() => object) | null = null;
   private token: string;
@@ -121,6 +126,24 @@ export class LiveHub {
         const r = this.onTask!(session, b.task);
         if ('id' in r) this.send({ type: 'part', session, child: r.id });
         res.writeHead('id' in r ? 202 : r.error === 'busy' ? 409 : 400, { 'content-type': 'application/json' }).end(JSON.stringify(r));
+      });
+    }
+    if (req.method === 'POST' && url === '/__live/plan') {
+      if (origin !== self || !isJson(req) || !this.onPlan) return deny(res);
+      return readBody(req, res, async (b) => {
+        const session = short(b.session);
+        if (!session || typeof b.task !== 'string') return void res.writeHead(400).end();
+        const r = await this.onPlan!(session, b.task);
+        res.writeHead('parts' in r ? 200 : 400, { 'content-type': 'application/json' }).end(JSON.stringify(r));
+      });
+    }
+    if (req.method === 'POST' && url === '/__live/plan/run') {
+      if (origin !== self || !isJson(req) || !this.onPlanRun) return deny(res);
+      return readBody(req, res, (b) => {
+        const session = short(b.session);
+        if (!session) return void res.writeHead(400).end();
+        const r = this.onPlanRun!(session, b.parts);
+        res.writeHead('ok' in r ? 202 : 'error' in r && r.error === 'busy' ? 409 : 400, { 'content-type': 'application/json' }).end(JSON.stringify(r));
       });
     }
     if (req.method === 'POST' && url === '/__live/hook') {

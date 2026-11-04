@@ -359,5 +359,17 @@
     "unavailable": "The live server isn’t running, so there is nothing to count.",
     "empty": "No work yet today.",
     "note": "{n} messages, each counted once. “From cache” is context read again, not new work, so it is kept apart. Only token counts are read, never the messages."
+  },
+  "plan": {
+    "ask": "Plan first",
+    "wait": "The conductor is reading the task and making a plan…",
+    "title": "The plan",
+    "dry": "Nothing has started yet. Look it over: Run plays the parts one after another, each on its musician’s second chair.",
+    "run": "Run the plan",
+    "cancel": "Cancel",
+    "started": "The plan is playing: one part after another.",
+    "busy": "Still making the last plan. Try again in a moment.",
+    "malformed": "The plan came back in the wrong shape, so nothing started. Try again or hand the part over directly.",
+    "failed": "Couldn’t make a plan. Is Claude Code installed?"
   }
 }

@@ -28,10 +28,25 @@ export function live(): Plugin {
       hub.sessions = () => reader.sessions();
       const box = new BoxOffice(home);
       hub.takings = () => box.today();
-      const conductor = new Conductor({ onEnd: (child) => hub.send({ type: 'part_end', child }) });
+      let planSession = '';
+      const conductor = new Conductor({
+        onEnd: (child) => hub.send({ type: 'part_end', child }),
+        // a plan's parts: tell the page which kind of work each one is
+        onStart: (child, role) => role && hub.send({ type: 'part', session: planSession, child, role }),
+      });
       hub.onTask = (session, task) => {
         const cwd = reader.cwdOf(session);
         return cwd ? conductor.start({ cwd, task }) : { error: 'unknown' };
+      };
+      hub.onPlan = async (session, task) => {
+        const cwd = reader.cwdOf(session);
+        return cwd ? conductor.plan({ cwd, task }) : { error: 'unknown' };
+      };
+      hub.onPlanRun = (session, parts) => {
+        const cwd = reader.cwdOf(session);
+        if (!cwd) return { error: 'unknown' };
+        planSession = session;
+        return conductor.startPlan({ cwd, parts });
       };
       reader.start();
       server.middlewares.use((req, res, next) => hub.handle(req, res, next));

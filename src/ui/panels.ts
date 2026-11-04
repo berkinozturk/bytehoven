@@ -156,6 +156,9 @@ export class Detail {
   tasks = true;
   /** What the note under the task box says. */
   taskNote = 'detail.demoNote';
+  /** Live mode: the conductor can ask for a plan first. */
+  planning = false;
+  onPlan: (id: string, text: string) => void = () => {};
   onVolume: (id: string, db: number) => void = () => {};
   onMute: (id: string, m: boolean) => void = () => {};
   onTask: (id: string, text: string) => void = () => {};
@@ -192,7 +195,11 @@ export class Detail {
           ? `<h3>${esc(t('detail.task', { name: d.info.name }))}</h3>
       <textarea class="task" placeholder="${esc(t('detail.taskPh'))}"></textarea>
       <div class="note">${esc(t(this.taskNote))}</div>
-      <button class="btn gold send">${esc(t('detail.send'))}</button>`
+      <div class="row task-actions">
+        <button class="btn gold send">${esc(t('detail.send'))}</button>
+        ${this.planning ? `<button class="btn ghost plan">${esc(t('plan.ask'))}</button>` : ''}
+      </div>
+      <div class="plan-box" hidden></div>`
           : ''
       }
     `;
@@ -212,6 +219,12 @@ export class Detail {
       this.onTask(d.info.id, ta.value);
       ta.value = '';
     };
+    const plan = this.el.querySelector<HTMLButtonElement>('.plan');
+    if (plan)
+      plan.onclick = () => {
+        if (!ta.value.trim()) return ta.focus();
+        this.onPlan(d.info.id, ta.value);
+      };
   }
 
   /** Replace the note under the task box for a moment (e.g. "part handed over"). */
@@ -224,6 +237,31 @@ export class Detail {
       note.classList.remove('flash');
       note.textContent = t(this.taskNote);
     }, 5000);
+  }
+
+  /**
+   * The plan box under the task: "planning…", the plan to look over (a dry run: nothing has
+   * started) with Run / Cancel, or why there is no plan.
+   */
+  showPlan(state: { kind: 'wait' } | { kind: 'error'; text: string } | { kind: 'plan'; parts: Array<{ who: string; color: number; role: string; task: string }>; run: () => void }) {
+    const box = this.el.querySelector<HTMLElement>('.plan-box');
+    if (!box) return;
+    box.hidden = false;
+    if (state.kind === 'wait') return void (box.innerHTML = `<div class="note">${esc(t('plan.wait'))}</div>`);
+    if (state.kind === 'error') return void (box.innerHTML = `<div class="note">${esc(state.text)}</div>`);
+    box.innerHTML = `
+      <h3>${esc(t('plan.title'))}</h3>
+      <ol class="plan-list">${state.parts
+        .map((p) => `<li><b style="color:${css(p.color)}">${esc(p.who)}</b> <small>${esc(p.role)}</small><span>${esc(p.task)}</span></li>`)
+        .join('')}</ol>
+      <div class="note">${esc(t('plan.dry'))}</div>
+      <div class="row task-actions"><button class="btn gold run">${esc(t('plan.run'))}</button><button class="btn ghost cancel">${esc(t('plan.cancel'))}</button></div>`;
+    box.querySelector<HTMLButtonElement>('.run')!.onclick = () => {
+      box.hidden = true;
+      this.el.querySelector<HTMLTextAreaElement>('.task')!.value = '';
+      state.run();
+    };
+    box.querySelector<HTMLButtonElement>('.cancel')!.onclick = () => (box.hidden = true);
   }
 
   refresh(d: DetailData) {
