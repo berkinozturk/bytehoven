@@ -16,7 +16,7 @@ import type { LiveMsg, LiveSession } from './reader.ts';
 
 export type PageMsg =
   | LiveMsg
-  | { type: 'hello'; sessions: LiveSession[]; permissions: Permission[] }
+  | { type: 'hello'; sessions: LiveSession[]; permissions: Permission[]; recent: Recent[] }
   | ({ type: 'permission' } & Permission)
   | { type: 'permission_end'; id: number; approved?: boolean }
   /** A part handed out from the page: `child` is the new run's session id. */
@@ -32,6 +32,11 @@ export interface Permission {
   tool: string;
   target?: string;
 }
+
+/** A past event, kept so a page that opens late doesn't start empty. `at` is wall-clock ms. */
+export type Recent = Extract<LiveMsg, { type: 'event' }> & { at: number };
+
+const RECENT = 20;
 
 interface Waiting {
   permission: Permission;
@@ -53,6 +58,7 @@ export class LiveHub {
   private pages = new Set<ServerResponse>();
   private waiting = new Map<number, Waiting>();
   private nextId = 1;
+  private recent: Recent[] = [];
   private heartbeat: NodeJS.Timeout;
 
   constructor(opts: { token: string; decisionTimeoutMs?: number }) {
@@ -73,6 +79,10 @@ export class LiveHub {
 
   /** From the session reader. */
   publish(msg: LiveMsg) {
+    if (msg.type === 'event') {
+      this.recent.push({ ...msg, at: Date.now() });
+      if (this.recent.length > RECENT) this.recent.shift();
+    }
     this.send(msg);
   }
 
@@ -118,7 +128,7 @@ export class LiveHub {
     this.pages.add(res);
     res.on('close', () => this.pages.delete(res));
     const permissions = [...this.waiting.values()].map((w) => w.permission);
-    write(res, { type: 'hello', sessions: this.sessions(), permissions });
+    write(res, { type: 'hello', sessions: this.sessions(), permissions, recent: this.recent });
   }
 
   private onHook(b: Record<string, unknown>, req: IncomingMessage, res: ServerResponse) {

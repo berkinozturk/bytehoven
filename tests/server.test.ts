@@ -139,3 +139,21 @@ test('the page can hand a session a new part', async () => {
   assert.equal(busy.status, 409);
   await s.close();
 });
+
+test('a page that opens late gets the last 20 events with their time, newest last', async () => {
+  const s = await start();
+  for (let i = 0; i < 25; i++) s.hub.publish({ type: 'event', session: 'abc', ev: { kind: 'file_read', tool: 'Read', target: `f${i}.ts` } });
+  s.hub.publish({ type: 'session', session: { id: 'abc', folder: 'fermata', status: 'busy' } });
+  const page = listen(s.port, s.host);
+  try {
+    await page.ready;
+    const hello = (await page.waitFor('hello')) as { recent?: Array<{ at: number; session: string; ev: { target: string } }> };
+    assert.equal(hello.recent?.length, 20);
+    assert.equal(hello.recent[0].ev.target, 'f5.ts');
+    assert.equal(hello.recent[19].ev.target, 'f24.ts');
+    assert.ok(hello.recent.every((m) => typeof m.at === 'number' && Math.abs(Date.now() - m.at) < 5000));
+  } finally {
+    page.close();
+    await s.close();
+  }
+});

@@ -126,7 +126,7 @@ Press **Live** in the top bar (or open `http://127.0.0.1:5180/?live`). The whole
 | running tests | Otto · timpani |
 | other commands and builds | Bruno · double bass |
 
-All your running sessions play the same orchestra; every line in the programme shows which project folder it came from. Sub-agents join as second chairs, and musicians with nothing to do doze off.
+All your running sessions play the same orchestra; every line in the programme shows which project folder it came from. Sub-agents join as second chairs, and musicians with nothing to do doze off. When you open the page, the last 20 events are already written in the score and the programme (faded, not played), so you can see what just happened.
 
 **The fermata, with a real Approve button.** To hear the hall hold its breath when a session needs your permission, add Bytehoven's hook to Claude Code:
 
@@ -216,8 +216,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
   - [x] **A sound lesson**: let the tour play each signal on its own (a file read, a write, a shell command, a failing and a passing test, a sub-agent joining, a finished turn, the fermata) and say what it means, so you can follow your agents by ear
 - [x] **Next to Claude Code**: a compact layout for side panels, plus an always-on-top pop-out window
 - [x] **Live mode**: running sessions and sub-agents read live, read-only; a permission hook for the fermata with real Approve / Deny
-  - [ ] choose which session sits in which chair (by folder), instead of first come, first seated
-  - [ ] on page load, replay the last few events so the score never starts empty
+  - [x] on page load, replay the last few events so the score never starts empty
 - [ ] **Box office**: today's tokens per musician, de-duplicated by message id, with cache reads shown separately (they're re-read context, not new work)
 - [x] **Conducting**: hand a musician a new part (`claude -p`, prompt via stdin, narrow tool permissions, `rm` / `git push` / `curl` blocked)
   - [ ] next: the conductor plans first: one tool-less `claude -p --json-schema` call returns who plays what; the plan is validated, and nothing starts if it's malformed. A dry-run shows the plan without running it

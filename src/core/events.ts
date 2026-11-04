@@ -43,6 +43,8 @@ export interface AgentEvent {
   seated?: boolean;
   /** Live mode: the session (project folder) this came from. */
   session?: string;
+  /** Live mode: an event from before the page opened, shown but not played. */
+  replay?: boolean;
   /** Wall-clock ms. */
   at: number;
 }

@@ -21,7 +21,7 @@ const CHAIRS: Array<{ id: ChairId; name: string; role: Role; second: string }> =
 ];
 
 type Msg =
-  | { type: 'hello'; sessions: SessionMsg[]; permissions: Permission[] }
+  | { type: 'hello'; sessions: SessionMsg[]; permissions: Permission[]; recent?: Recent[] }
   | { type: 'session'; session: SessionMsg }
   | { type: 'session_end'; id: string }
   | { type: 'event'; session: string; agent?: string; ev: { kind: AgentEventKind; tool?: string; target?: string; child?: string } }
@@ -29,6 +29,9 @@ type Msg =
   | { type: 'permission_end'; id: number; approved?: boolean }
   | { type: 'part'; session: string; child: string }
   | { type: 'part_end'; child: string };
+
+/** An event from before the page opened; `at` is wall-clock ms. */
+type Recent = Extract<Msg, { type: 'event' }> & { at: number };
 
 interface SessionMsg {
   id: string;
@@ -161,8 +164,10 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
     switch (m.type) {
       case 'hello':
         this.connected = true;
+        const first = !this.seated; // a reconnect would replay the same events again
         this.seatAll();
         for (const s of m.sessions) this.session(s.id, s.folder, s.status);
+        if (first) for (const r of m.recent ?? []) this.replay(r);
         for (const p of m.permissions) this.ask(p);
         this.report();
         break;
@@ -247,6 +252,21 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
       return;
     }
     this.play(m.session, chairFor({ kind, tool, target }, s.last), kind, { tool, target });
+  }
+
+  /**
+   * Write a past event into the programme and the score without playing it, so the
+   * page doesn't start empty. Sub-agents that came and went are left out.
+   */
+  private replay(r: Recent) {
+    const { kind, tool, target } = r.ev;
+    if (kind === 'subagent_join' || kind === 'subagent_leave' || this.parts.has(r.session)) return;
+    const s = this.session(r.session);
+    const chair = chairFor({ kind, tool, target }, s.last);
+    s.last = chair;
+    this.lastSession.set(chair, r.session);
+    const at = performance.now() - Math.max(0, Date.now() - r.at);
+    this.send(chair, kind, { tool, target, session: s.folder, replay: true, at });
   }
 
   /** A musician plays for a session. */

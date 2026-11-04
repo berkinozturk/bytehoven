@@ -99,6 +99,7 @@ async function main() {
   sim.on('event', (ev) => perform(ev));
   /** Everything an event does: sound, stage, programme, drawer, permission card. */
   function perform(ev: AgentEvent) {
+    if (ev.replay) return replayed(ev);
     if (ev.kind === 'subagent_join' && ev.child) {
       if (agents.has(ev.child.id)) return; // a chair being refilled before its musician left
       addAgent(ev.child, !ev.seated);
@@ -124,6 +125,19 @@ async function main() {
       perm.hidden = true;
     }
     if (detail.current) refreshDetail();
+  }
+  /** Events from before the page opened: written down, not played. Gathered, then laid on the score at once. */
+  let pastBatch: AgentEvent[] = [];
+  function replayed(ev: AgentEvent) {
+    feed.add(ev);
+    const list = recent.get(ev.agentId) ?? [];
+    list.unshift(ev);
+    recent.set(ev.agentId, list.slice(0, 20));
+    if (!pastBatch.length) setTimeout(() => {
+      score.history(pastBatch);
+      pastBatch = [];
+    });
+    pastBatch.push(ev);
   }
   engine.on('note', (n) => {
     stage.onNote(n);
