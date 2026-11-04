@@ -37,9 +37,17 @@ export function onLang(fn: () => void) {
 }
 
 /** t('fermata.waiting', { name: 'Clara' }) */
+let variant: string | null = null;
+
+/** A theme can override any text under `themes.<id>` (e.g. the violin chair is a sax in the jazz club). */
+export function setVariant(id: string | null) {
+  variant = id;
+}
+
 export function t(key: string, vars: Record<string, string | number> = {}): string {
-  const get = (d: unknown) => key.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], d);
-  let s = (get(dicts[lang]) ?? get(dicts.en) ?? key) as string;
+  const get = (d: unknown, k: string) => k.split('.').reduce<unknown>((o, p) => (o as Record<string, unknown> | undefined)?.[p], d);
+  const scoped = variant ? `themes.${variant}.${key}` : null;
+  let s = ((scoped && (get(dicts[lang], scoped) ?? get(dicts.en, scoped))) ?? get(dicts[lang], key) ?? get(dicts.en, key) ?? key) as string;
   for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
   return s;
 }

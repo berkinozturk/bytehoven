@@ -4,8 +4,9 @@ import type { NoteInfo } from '../audio/engine';
 import type { AgentEvent, AgentInfo } from '../core/events';
 import { Particles, textures } from './fx';
 import type { Look } from './figures';
-import { H, W, drawAudience, drawClosedCurtain, drawFrontDrapes, drawHall } from './hall';
-import { Conductor, makeFigure, type Figure, type Frame, type MState } from './musicians';
+import { H, W } from './hall';
+import { Conductor, type Figure, type Frame, type MState } from './musicians';
+import { orchestraStage, type StageTheme } from './theme';
 import type { PixelCanvas } from './pixel';
 
 export interface Seat {
@@ -94,6 +95,12 @@ export class Stage {
   private focusId: string | null = null;
   private lastT = now();
 
+  private theme: StageTheme;
+
+  constructor(theme: StageTheme = orchestraStage) {
+    this.theme = theme;
+  }
+
   /** Provided by the app each frame. */
   beat: () => BeatInfo = () => ({ phase: 0, beat: 0, running: false });
   tension: () => { value: number; agent: string | null } = () => ({ value: 0, agent: null });
@@ -112,14 +119,9 @@ export class Stage {
     const T = textures();
 
     // ---- static layers
-    const hall = new Sprite(pixelTexture(drawHall()));
+    const hall = new Sprite(pixelTexture(this.theme.backdrop()));
     this.world.addChild(hall);
-    // warm sconce glows and a faint organ halo
-    for (const [x, y, s, tint, a] of [
-      [64, 58, 0.9, 0xffb86a, 0.75],
-      [W - 64, 58, 0.9, 0xffb86a, 0.75],
-      [192, 60, 3.2, 0xffd59a, 0.12],
-    ] as const) {
+    for (const [x, y, s, tint, a] of this.theme.glows) {
       const g = new Sprite(T.glow);
       g.anchor.set(0.5);
       g.position.set(x, y);
@@ -137,7 +139,7 @@ export class Stage {
     this.conductorSprite.anchor.set(this.conductor.ax / this.conductor.c.w, this.conductor.ay / this.conductor.c.h);
     this.conductorSprite.position.set(W / 2, H + 1);
 
-    const drapes = new Sprite(pixelTexture(drawFrontDrapes()));
+    const drapes = new Sprite(pixelTexture(this.theme.front()));
     this.world.addChild(drapes);
     this.world.addChild(this.darkness);
     this.world.addChild(this.spotLayer);
@@ -162,11 +164,11 @@ export class Stage {
     this.fx.addChild(this.fermataGlow, this.fermataSign);
 
     this.world.addChild(this.conductorSprite);
-    const audience = new Sprite(pixelTexture(drawAudience()));
+    const audience = new Sprite(pixelTexture(this.theme.audience()));
     this.world.addChild(audience);
 
-    this.curtainL = new Sprite(pixelTexture(drawClosedCurtain('left')));
-    this.curtainR = new Sprite(pixelTexture(drawClosedCurtain('right')));
+    this.curtainL = new Sprite(pixelTexture(this.theme.curtain('left')));
+    this.curtainR = new Sprite(pixelTexture(this.theme.curtain('right')));
     this.curtainR.x = W / 2 - 6;
     this.world.addChild(this.curtainL, this.curtainR);
     this.world.addChild(this.flash);
@@ -191,7 +193,7 @@ export class Stage {
   // ------------------------------------------------------------------ musicians
 
   addMusician(info: AgentInfo, seat: Seat, opts: { walkIn?: boolean } = {}) {
-    const fig = makeFigure(info.instrument, seat.look);
+    const fig = this.theme.figure(info.instrument, seat.look);
     const tex = pixelTexture(fig.c);
     const sprite = new Sprite(tex);
     sprite.anchor.set(fig.ax / fig.c.w, fig.ay / fig.c.h);
@@ -207,10 +209,10 @@ export class Stage {
     const T = textures();
     const cone = new Sprite(T.cone);
     cone.anchor.set(0.5, 0);
-    cone.tint = 0xffd9a0;
+    cone.tint = this.theme.light;
     const pool = new Sprite(T.pool);
     pool.anchor.set(0.5);
-    pool.tint = 0xffd9a0;
+    pool.tint = this.theme.light;
     this.lights.addChild(cone, pool);
     const t = now();
     const v: View = {
@@ -239,7 +241,7 @@ export class Stage {
     };
     if (opts.walkIn) {
       // the chair and stand appear first, then the musician walks on from the wings
-      const ghost = makeFigure(info.instrument, seat.look);
+      const ghost = this.theme.figure(info.instrument, seat.look);
       ghost.render(this.frameFor(v, t, { seat: true, ghostOnly: true }));
       v.seatGhost = new Sprite(pixelTexture(ghost.c));
       v.seatGhost.anchor.copyFrom(sprite.anchor);
@@ -647,7 +649,7 @@ export class Stage {
 
       if (v.state === 'walking' && v.walk?.leaving && !v.seatGhost) {
         // leave the chair behind, fading
-        const ghost = makeFigure(v.info.instrument, v.seat.look);
+        const ghost = this.theme.figure(v.info.instrument, v.seat.look);
         ghost.render(this.frameFor(v, t, { seat: true, ghostOnly: true }));
         v.seatGhost = new Sprite(pixelTexture(ghost.c));
         v.seatGhost.anchor.copyFrom(v.sprite.anchor);
@@ -668,7 +670,7 @@ export class Stage {
         v.state === 'sleeping' ? 0.12 : v.state === 'idle' ? 0.22 : v.state === 'walking' ? 0.3 : v.state === 'error' ? 0.55 : 0.42;
       let goal = base + (sel ? 0.15 : 0);
       let width = 1;
-      let tint = v.state === 'sleeping' ? 0x8aa0ff : v.state === 'error' && t - v.errorAt < 3 ? 0xff6a5a : 0xffd9a0;
+      let tint = v.state === 'sleeping' ? 0x8aa0ff : v.state === 'error' && t - v.errorAt < 3 ? 0xff6a5a : this.theme.light;
       if (spot) {
         const k = target ? Math.min(1, tension * 1.4) : 0.6;
         if (spot === v) {

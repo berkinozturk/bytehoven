@@ -205,5 +205,45 @@
       "name": "Seni bekliyor",
       "desc": "müzik tek akorda durur, gerilim yükselir"
     }
+  },
+  "theme": {
+    "orchestra": "Orkestra",
+    "jazz": "Caz kulübü",
+    "chiptune": "Chiptune salonu",
+    "lofi": "Lo-fi yağmurlu oda",
+    "soon": "yakında",
+    "pick": "Tema"
+  },
+  "themes": {
+    "jazz": {
+      "app": {
+        "theme": "Caz kulübü"
+      },
+      "instrument": {
+        "piano": "Piyano",
+        "percussion": "Davul",
+        "violin": "Tenor saksafon",
+        "flute": "Sürdinli trompet",
+        "contrabass": "Kontrbas"
+      },
+      "tour": {
+        "welcome": {
+          "title": "Kulübe hoş geldin",
+          "body": "Her yapay zekâ kodlama ajanı bu grupta bir müzisyen. Yaptığı her şey müziğe dönüşüyor; ajanlarını sadece dinleyerek takip edebilirsin."
+        },
+        "ines": {
+          "title": "Ines · tenor saksafon",
+          "body": "Ines araştırma yapıyor: web aramaları ve dokümanlar. Her araç çağrısı saksafonda kısa bir cümle. Yardımcı çağırırsa sahneye ikinci bir saksafoncu yürür."
+        },
+        "mira": {
+          "title": "Mira · sürdinli trompet",
+          "body": "Mira dokümantasyonu yazıyor. Bir ajan dosya okuduğunda müzisyeni nota sehpasında sayfa çevirir ve sürdinli, yumuşak bir nota çalar."
+        },
+        "otto": {
+          "title": "Otto · davul",
+          "body": "Otto testleri çalıştırıyor. Geçen testler böyle bir davul geçişi ve büyük bir akorla biter. Başarısız test ise sert bir vuruş ve uyumsuz bir akor demek."
+        }
+      }
+    }
   }
 }

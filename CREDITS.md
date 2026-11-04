@@ -26,10 +26,22 @@ How we changed them (`scripts/prepare-samples.mjs`): folded to mono, silence
 before the attack removed, length capped with a fade-out, peak-normalised,
 octave labels verified with a YIN pitch detector, encoded as 96 kbps MP3.
 
+### Jazz club
+
+- **Tenor saxophone**: from the **Versilian Community Sample Library (VCSL)** by
+  Versilian Studios, <https://github.com/sgossner/VCSL>, **CC0 1.0** (repository licence).
+- **Muted trumpet**: VSCO 2 CE (above), *Trumpet, straight mute*.
+- **Drum kit** (ride, hi-hat, kick, snare, crash): **Virtuosity Drums** by Versilian Studios,
+  <https://github.com/sfzinstruments/virtuosity_drums>, **CC0 1.0** (repository licence).
+  The drum samples ship as FLAC; they were converted to WAV with macOS `afconvert`
+  before the same processing as above.
+- Piano and double bass are shared with the Orchestra.
+
 ## Pixel art
 
-Every visual on stage — the hall, the organ, the curtains, the musicians,
-their instruments, the conductor and the particles — is original pixel art
+Every visual on stage — the hall, the organ, the curtains, the jazz club and
+its neon sign, the musicians, their instruments, the conductor and the
+particles — is original pixel art
 drawn procedurally in code (`src/stage/`). It is part of Bytehoven and licensed
 under MIT. No third-party sprite packs are used.
 

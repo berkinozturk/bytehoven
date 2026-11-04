@@ -1306,3 +1306,45 @@ html.live .modes [data-mode='live']::before {
 .detail .note.flash {
   color: var(--gold-2);
 }
+
+/* theme picker: the chip shows the theme; an invisible select on top opens the menu */
+.theme-pick {
+  position: relative;
+  display: inline-flex;
+}
+
+.theme-pick .chip::after {
+  content: '▾';
+  margin-left: 6px;
+  font-size: 9px;
+}
+
+.theme-pick select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.theme-pick select option {
+  color: var(--text);
+  background: var(--panel);
+}
+
+.meter-line {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .theme-pick .chip {
+    display: inline-block;
+  }
+}
+
+@media (max-width: 720px) {
+  .theme-pick {
+    display: none;
+  }
+}

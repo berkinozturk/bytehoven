@@ -1,82 +1,38 @@
 import * as Tone from 'tone';
 import { Emitter } from '../core/bus';
-import type { AgentEvent, AgentEventKind, InstrumentId } from '../core/events';
-import {
-  CHORDS,
-  PROGRESSION,
-  bassNote,
-  chordTones,
-  nearestChordTone,
-  scaleStep,
-  voicing,
-  type Chord,
-} from './theory';
+import type { AgentEvent, InstrumentId } from '../core/events';
+import type { Kit, NoteInfo, SoundTheme, VoiceLike } from './sound-theme';
+import { orchestra } from './themes/orchestra';
+import { chordTones, nearestChordTone, scaleStep, voicing, type Chord } from './theory';
 
 /**
  * The Bytehoven audio engine.
  *
- * - One Tone.Transport clock (92 BPM, 4/4). Every sound is quantised to it,
+ * - One Tone.Transport clock (4/4, tempo from the theme). Every sound is quantised to it,
  *   and every visual reaction is scheduled with Tone.Draw on the exact same
  *   timestamp, so sound and picture never drift.
  * - Each musician is a Voice with its own stereo position and volume.
  * - Events queue per voice. A scheduler ticks every 16th note: normal
  *   events start on the next 8th; a backlog of 3+ events turns into a
  *   flowing diatonic run instead of a pile of "dings".
- * - Fermata: a held dominant (A7) built from real string tremolo samples that
- *   grows layer by layer, opens its filter and swells, with a heartbeat
- *   underneath — until the user approves and it resolves to D major.
+ * - Fermata: the theme's held dominant grows layer by layer, opens its filter
+ *   and swells, with a heartbeat underneath, until the user approves and it
+ *   resolves to the tonic.
+ * - What the band actually plays (harmony, instruments, every "moment") comes
+ *   from a SoundTheme: see ./themes.
  */
 
-const BPM = 92;
 const TICKS_PER_16TH = 48; // Tone default PPQ = 192
 
-export interface NoteInfo {
-  agentId: string;
-  kind: AgentEventKind | 'run' | 'tuning' | 'resolve' | 'intro';
-  midis: number[];
-  velocity: number;
-  duration: number;
-  /** Index within a phrase, for visuals that want to animate per hit. */
-  index: number;
-}
+export type { NoteInfo } from './sound-theme';
 
 interface Manifest {
   groups: Record<string, { pitched: boolean; samples: Record<string, string> }>;
 }
 
-interface InstrumentSpec {
-  range: [number, number];
-  soft: string;
-  motif: string;
-  chord: string;
-  rhythm: string;
-  long: string;
-  chordSize: number;
-  gainDb: number;
-  tuningNote: number;
-}
-
-const SPECS: Record<Exclude<InstrumentId, 'percussion'>, InstrumentSpec> = {
-  piano: { range: [50, 86], soft: 'piano', motif: 'piano', chord: 'piano', rhythm: 'piano', long: 'piano', chordSize: 3, gainDb: -3, tuningNote: 69 },
-  violin: { range: [62, 88], soft: 'violin_pizz', motif: 'violin_spic', chord: 'violin', rhythm: 'violin_spic', long: 'violin', chordSize: 2, gainDb: -4, tuningNote: 69 },
-  flute: { range: [69, 93], soft: 'flute_sus', motif: 'flute_stac', chord: 'flute_sus', rhythm: 'flute_stac', long: 'flute_sus', chordSize: 1, gainDb: -6, tuningNote: 81 },
-  contrabass: { range: [28, 50], soft: 'bass_pizz', motif: 'bass_pizz', chord: 'bass_sus', rhythm: 'bass_pizz', long: 'bass_sus', chordSize: 1, gainDb: -1, tuningNote: 33 },
-};
-
-
-const SAMPLER_ENV: Record<string, { attack: number; release: number }> = {
-  strings_sus: { attack: 0.25, release: 1.6 },
-  strings_trem: { attack: 0.5, release: 1.4 },
-  cello_trem: { attack: 0.5, release: 1.4 },
-  bass_sus: { attack: 0.08, release: 0.9 },
-  flute_sus: { attack: 0.06, release: 0.6 },
-  violin: { attack: 0.05, release: 0.7 },
-  timp_roll: { attack: 0.3, release: 1.2 },
-};
-
 type Queued = { ev: AgentEvent };
 
-class Voice {
+class Voice implements VoiceLike {
   readonly channel: Tone.Channel;
   readonly samplers = new Map<string, Tone.Sampler>();
   queue: Queued[] = [];
@@ -95,7 +51,7 @@ class Voice {
     out: Tone.InputNode,
     private engine: AudioEngine,
   ) {
-    const spec = instrument === 'percussion' ? null : SPECS[instrument];
+    const spec = instrument === 'percussion' ? null : engine.theme.specs[instrument];
     this.channel = new Tone.Channel({ pan, volume: spec?.gainDb ?? -2 }).connect(out);
     this.lastMidi = spec ? Math.round((spec.range[0] + spec.range[1]) / 2) : 38;
   }
@@ -122,20 +78,21 @@ class Voice {
   }
 }
 
-export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar: { chord: Chord; bar: number } }> {
+export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar: { chord: Chord; bar: number } }> implements Kit {
+  readonly theme: SoundTheme;
   private buffers = new Map<string, Map<number, Tone.ToneAudioBuffer>>();
   /** Unpitched groups: sample name -> pseudo midi key. */
   private hitKeys = new Map<string, Map<string, number>>();
   private voices = new Map<string, Voice>();
-  private ensemble!: Voice;
+  ensemble!: Voice;
   private fermataBus!: Tone.Channel;
   private fermataFilter!: Tone.Filter;
   private fermataVol!: Tone.Volume;
   private master!: Tone.Volume;
-  private padVol!: Tone.Volume;
+  padVol!: Tone.Volume;
 
   private bar = 0;
-  private chord: Chord = PROGRESSION[0];
+  chord: Chord;
   private lockedChord: Chord | null = null;
   private resumeAt: number | null = null;
 
@@ -146,12 +103,20 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
   ready = false;
   started = false;
 
+  constructor(theme: SoundTheme = orchestra) {
+    super();
+    this.theme = theme;
+    this.chord = theme.progression[0];
+  }
+
   // ------------------------------------------------------------------ loading
 
   async load(baseUrl = './samples/'): Promise<void> {
     const manifest: Manifest = await (await fetch(baseUrl + 'manifest.json')).json();
     const jobs: Array<() => Promise<void>> = [];
+    const wanted = new Set(this.theme.groups);
     for (const [group, g] of Object.entries(manifest.groups)) {
+      if (!wanted.has(group)) continue;
       const map = new Map<number, Tone.ToneAudioBuffer>();
       this.buffers.set(group, map);
       let pseudo = 60;
@@ -190,7 +155,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     if (!map) throw new Error(`unknown sample group ${group}`);
     const urls: Record<number, Tone.ToneAudioBuffer> = {};
     for (const [m, b] of map) urls[m] = b;
-    const env = SAMPLER_ENV[group] ?? { attack: 0.005, release: 0.8 };
+    const env = this.theme.env[group] ?? { attack: 0.005, release: 0.8 };
     return new Tone.Sampler({ urls, attack: env.attack, release: env.release, curve: 'exponential' });
   }
 
@@ -198,7 +163,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     const limiter = new Tone.Limiter(-1).toDestination();
     this.master = new Tone.Volume(7).connect(limiter);
     const comp = new Tone.Compressor({ threshold: -20, ratio: 2.5, attack: 0.02, release: 0.25 }).connect(this.master);
-    const reverb = new Tone.Reverb({ decay: 3.4, preDelay: 0.025, wet: 0.3 }).connect(comp);
+    const reverb = new Tone.Reverb(this.theme.reverb).connect(comp);
     // a hint of early reflections for "hall" depth
     const early = new Tone.FeedbackDelay({ delayTime: 0.031, feedback: 0.12, wet: 0.08 }).connect(reverb);
     this.busIn = early;
@@ -211,8 +176,10 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     this.fermataBus = new Tone.Channel({ pan: 0 }).connect(this.fermataFilter);
 
     const t = Tone.getTransport();
-    t.bpm.value = BPM;
+    t.bpm.value = this.theme.bpm;
     t.timeSignature = 4;
+    t.swing = this.theme.swing;
+    t.swingSubdivision = '8n';
     t.scheduleRepeat((time) => this.tick(time), '16n', 0);
     for (const [id, inst, pan] of this.pendingVoices) this.addVoice(id, inst, pan);
     this.pendingVoices = [];
@@ -243,7 +210,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
   setVoiceVolume(agentId: string, db: number): void {
     const v = this.voices.get(agentId);
     if (!v) return;
-    const spec = v.instrument === 'percussion' ? null : SPECS[v.instrument];
+    const spec = v.instrument === 'percussion' ? null : this.theme.specs[v.instrument];
     v.channel.volume.rampTo((spec?.gainDb ?? -2) + db, 0.1);
   }
 
@@ -273,46 +240,13 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
   async startConcert(): Promise<number> {
     await Tone.start();
     const now = Tone.now() + 0.1;
-    const ens = this.ensemble;
-    // oboe-style A from the flute first, then everyone joins with their A
-    const tuners: Array<{ group: string; midi: number; at: number; vel: number; dur: number }> = [
-      { group: 'flute_sus', midi: 81, at: 0, vel: 0.5, dur: 3.2 },
-      { group: 'violin', midi: 69, at: 0.9, vel: 0.35, dur: 2.6 },
-      { group: 'violin', midi: 76, at: 1.5, vel: 0.25, dur: 1.8 },
-      { group: 'strings_sus', midi: 69, at: 1.2, vel: 0.5, dur: 3 },
-      { group: 'cello_trem', midi: 57, at: 1.7, vel: 0.35, dur: 2.2 },
-      { group: 'bass_sus', midi: 33, at: 1.9, vel: 0.55, dur: 2.2 },
-      { group: 'violin_pizz', midi: 64, at: 2.4, vel: 0.3, dur: 0.6 },
-      { group: 'violin_pizz', midi: 69, at: 2.6, vel: 0.3, dur: 0.6 },
-      { group: 'piano', midi: 69, at: 2.2, vel: 0.3, dur: 1.5 },
-      { group: 'violin', midi: 62, at: 2.9, vel: 0.25, dur: 1.2 },
-      { group: 'timp', midi: 33, at: 3.0, vel: 0.25, dur: 2 },
-    ];
     this.padVol.volume.value = -8;
-    for (const n of tuners) {
-      ens.sampler(n.group).triggerAttackRelease(Tone.Frequency(n.midi, 'midi').toNote(), n.dur, now + n.at, n.vel);
-      this.drawAt(now + n.at, { agentId: '__intro', kind: 'intro', midis: [n.midi], velocity: n.vel, duration: n.dur, index: 0 });
-    }
-    // silence... then the conductor taps the stand twice
-    const tap1 = now + 4.6;
-    const tap2 = tap1 + 0.5;
-    this.hit(ens, 'snare', 'snare1_rimshot_f', tap1, 0.12, 0.3);
-    this.hit(ens, 'snare', 'snare1_rimshot_f', tap2, 0.12, 0.3);
-    this.drawAt(tap1, { agentId: '__baton', kind: 'intro', midis: [], velocity: 1, duration: 0.2, index: 1 });
-    this.drawAt(tap2, { agentId: '__baton', kind: 'intro', midis: [], velocity: 1, duration: 0.2, index: 2 });
-    const downbeat = tap2 + (60 / BPM) * 1.0;
+    const downbeat = this.theme.intro(this, now);
     setTimeout(() => (this.padVol.volume.value = -20), (downbeat - Tone.now()) * 1000);
     const transport = Tone.getTransport();
     transport.position = 0;
     transport.start(downbeat);
     this.started = true;
-    // the first chord: a soft tutti D major
-    ens.sampler('strings_sus').triggerAttackRelease(voicing(CHORDS.I, 62, 4).map(toNote), 4.5, downbeat, 0.7);
-    ens.sampler('bass_sus').triggerAttackRelease(toNote(38), 4, downbeat, 0.75);
-    ens.sampler('harp').triggerAttackRelease(toNote(50), 3, downbeat, 0.6);
-    this.hit(ens, 'cymbal', 'suscymb1_hit_mp_rr1', downbeat, 0.25, 4);
-    this.harpGliss(downbeat + 0.05, 50, 86, 0.024, 0.45);
-    this.drawAt(downbeat, { agentId: '__all', kind: 'resolve', midis: [38, 62, 66, 69], velocity: 0.8, duration: 2, index: 0 });
     return downbeat - Tone.now();
   }
 
@@ -381,33 +315,34 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     } else if (!this.lockedChord) {
       this.bar++;
     }
-    this.chord = this.lockedChord ?? PROGRESSION[this.bar % PROGRESSION.length];
+    const prog = this.theme.progression;
+    this.chord = this.lockedChord ?? prog[this.bar % prog.length];
     this.emit('bar', { chord: this.chord, bar });
     if (this.fermata || this.lockedChord) return;
-    // the bed: a soft string pad that follows how busy the orchestra is
+    // the bed follows how busy the band is
     const now = performance.now();
     let active = 0;
     for (const v of this.voices.values()) if (now - v.lastEventAt < 7000) active++;
-    if (!active) return;
-    const vel = Math.min(0.75, 0.3 + active * 0.09);
-    const ens = this.ensemble;
-    const slot = bar % 2;
-    ens.sampler('strings_sus', slot).triggerAttackRelease(voicing(this.chord, 57, 3).map(toNote), (60 / BPM) * 4.3, time, vel);
-    if (active >= 3) ens.sampler('cello_trem', slot).triggerAttackRelease(toNote(bassNote(this.chord, 40, 52)), (60 / BPM) * 4.2, time, 0.22);
+    if (active) this.theme.bed(this, time, bar, active);
   }
 
-  private get spb() {
+  get nextChord(): Chord {
+    const prog = this.theme.progression;
+    return this.lockedChord ?? prog[(this.bar + 1) % prog.length];
+  }
+
+  get spb() {
     return 60 / Tone.getTransport().bpm.value;
   }
 
-  private s16(n: number) {
+  s16(n: number) {
     return (this.spb / 4) * n;
   }
 
   /** Plays the phrase for one event. Returns its length in 16ths. */
   private playPhrase(v: Voice, ev: AgentEvent, time: number): number {
-    if (v.instrument === 'percussion') return this.playPercussion(v, ev.kind, time);
-    const spec = SPECS[v.instrument];
+    if (v.instrument === 'percussion') return this.theme.percussion(this, v, ev.kind, time);
+    const spec = this.theme.specs[v.instrument];
     const [lo, hi] = spec.range;
     const chord = this.chord;
     const play = (group: string, midis: number[], at: number, dur: number, vel: number, kind: NoteInfo['kind'], index = 0) => {
@@ -467,13 +402,9 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
   }
 
   private playRun(v: Voice, ev: AgentEvent, time: number, step: number) {
-    if (v.instrument === 'percussion') {
-      this.hit(v, 'snare', step % 4 === 0 ? 'snare1_mp_1' : 'snare1_pp_1', time, 0.35, 0.3);
-      this.drawAt(time, { agentId: v.agentId, kind: 'run', midis: [60], velocity: 0.35, duration: 0.1, index: step });
-      return;
-    }
-    const spec = SPECS[v.instrument];
-    const r = scaleStep(v.lastMidi, v.runDir, spec.range[0] + 2, spec.range[1] - 4);
+    if (v.instrument === 'percussion') return this.theme.percussionRun(this, v, time, step);
+    const spec = this.theme.specs[v.instrument];
+    const r = scaleStep(v.lastMidi, v.runDir, spec.range[0] + 2, spec.range[1] - 4, this.theme.scale);
     v.runDir = r.dir;
     v.lastMidi = r.midi;
     const accent = step % 4 === 0;
@@ -482,104 +413,36 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     this.drawAt(time, { agentId: v.agentId, kind: 'run', midis: [r.midi], velocity: accent ? 0.5 : 0.35, duration: 0.12, index: step });
   }
 
-  private playPercussion(v: Voice, kind: AgentEventKind, time: number): number {
-    const draw = (midis: number[], vel: number, k: NoteInfo['kind'], at = time, index = 0) =>
-      this.drawAt(at, { agentId: v.agentId, kind: k, midis, velocity: vel, duration: 0.2, index });
-    const root = bassNote(this.chord, 33, 44);
-    switch (kind) {
-      case 'file_read':
-        v.sampler('timp').triggerAttackRelease(toNote(root), 1.2, time, 0.22);
-        draw([root], 0.25, 'file_read');
-        return 2;
-      case 'tool_start':
-        ['snare1_pp_1', 'snare1_pp_1', 'snare1_mp_1'].forEach((n, k) => {
-          this.hit(v, 'snare', n, time + this.s16(k) * 0.5, 0.3 + k * 0.12, 0.4);
-          draw([60], 0.3, 'tool_start', time + this.s16(k) * 0.5, k);
-        });
-        return 3;
-      case 'file_write':
-        v.sampler('timp').triggerAttackRelease(toNote(root), 1.5, time, 0.5);
-        this.hit(v, 'bdrum', 'bdrum_pp_1', time, 0.4, 1);
-        draw([root], 0.5, 'file_write');
-        return 4;
-      case 'bash': {
-        const pat: Array<[string, string, number]> = [
-          ['bdrum', 'bdrum_mp_1', 0.5],
-          ['snare', 'snare1_pp_1', 0.28],
-          ['snare', 'snare1_mp_1', 0.42],
-          ['snare', 'snare1_pp_1', 0.3],
-        ];
-        pat.forEach(([g, n, vel], k) => {
-          this.hit(v, g, n, time + this.s16(k), vel, 0.5);
-          draw([60], vel, 'bash', time + this.s16(k), k);
-        });
-        return 4;
-      }
-      case 'thinking':
-        this.hit(v, 'triangle', 'triangle3_hit_v1_rr1', time, 0.12, 1.5);
-        draw([], 0.1, 'tuning');
-        return 4;
-      default:
-        return 1;
-    }
-  }
-
-  private hit(v: Voice, group: string, name: string, time: number, vel: number, dur: number) {
+  hit(v: VoiceLike, group: string, name: string, time: number, vel: number, dur: number) {
     const key = this.hitKeys.get(group)?.get(name);
     if (key === undefined) return;
     v.sampler(group).triggerAttackRelease(toNote(key), dur, time, vel);
   }
 
-  private harpGliss(time: number, from: number, to: number, step: number, vel: number, dir: 1 | -1 = 1) {
+  gliss(group: string, time: number, from: number, to: number, step: number, vel: number, dir: 1 | -1 = 1) {
     const tones = chordTones(this.lockedChord ?? this.chord, from, to);
     if (dir < 0) tones.reverse();
-    const s = this.ensemble.sampler('harp');
+    const s = this.ensemble.sampler(group);
     tones.forEach((m, k) => s.triggerAttackRelease(toNote(m), 2.2, time + k * step, vel * (0.7 + 0.3 * (k / tones.length))));
   }
 
   // ------------------------------------------------------------------ dramatic moments
 
   private playError(v: Voice, time: number) {
-    const ens = this.ensemble;
-    const base = v.instrument === 'percussion' ? 62 : Math.round((SPECS[v.instrument].range[0] + SPECS[v.instrument].range[1]) / 2);
-    // minor second + tritone: unmistakably "something is off", but brief
-    const cluster = [base, base + 1, base + 6];
-    if (v.instrument === 'percussion') {
-      this.hit(v, 'snare', 'snare1_rimshot_f', time, 0.7, 0.5);
-      v.sampler('timp').triggerAttackRelease([toNote(38), toNote(39)], 1.8, time, 0.7);
-      this.hit(v, 'cymbal', 'cymbal_crash1_mf_rr1', time, 0.32, 2.5);
-    } else {
-      const spec = SPECS[v.instrument];
-      v.sampler(spec.chord).triggerAttackRelease(cluster.slice(0, Math.max(2, spec.chordSize)).map(toNote), 1.4, time, 0.7);
-    }
-    ens.sampler('piano').triggerAttackRelease([toNote(51), toNote(52), toNote(58), toNote(63)], 1.6, time, 0.55);
-    ens.sampler('cello_trem').triggerAttackRelease([toNote(45), toNote(46)], 1.6, time, 0.45);
-    this.drawAt(time, { agentId: v.agentId, kind: 'test_fail', midis: cluster, velocity: 0.8, duration: 1.4, index: 0 });
+    this.theme.error(this, v, time);
     v.busyUntil = this.stepAt(time) + 8;
   }
 
   private playCadence(v: Voice, time: number) {
-    // V → I in the timpani, cymbal swell, the strings answer
-    const ens = this.ensemble;
-    const b = this.spb;
-    v.sampler('timp').triggerAttackRelease(toNote(33), 1, time, 0.6);
-    v.sampler('timp').triggerAttackRelease(toNote(33), 1, time + b * 0.5, 0.45);
-    v.sampler('timp').triggerAttackRelease(toNote(38), 2.5, time + b, 0.85);
-    this.hit(v, 'cymbal', 'suscymb1_hit_mp_rr1', time + b, 0.5, 4);
-    this.hit(v, 'triangle', 'triangle3_hit_v1_rr2', time + b, 0.3, 2);
-    ens.sampler('strings_sus').triggerAttackRelease(voicing(CHORDS.V7, 57, 4).map(toNote), b, time, 0.6);
-    ens.sampler('strings_sus').triggerAttackRelease(voicing(CHORDS.I, 62, 4).map(toNote), b * 3, time + b, 0.75);
-    ens.sampler('glock').triggerAttackRelease([toNote(86), toNote(90)], 2, time + b, 0.35);
-    this.drawAt(time, { agentId: v.agentId, kind: 'test_pass', midis: [33], velocity: 0.6, duration: b, index: 0 });
-    this.drawAt(time + b, { agentId: v.agentId, kind: 'test_pass', midis: [38, 62, 66, 69], velocity: 0.9, duration: 2, index: 1 });
+    this.theme.cadence(this, v, time);
     v.busyUntil = this.stepAt(time) + 12;
   }
 
   private playFinale(v: Voice, time: number) {
     const s16 = this.s16(1);
     if (v.instrument === 'percussion') return this.playCadence(v, time);
-    const spec = SPECS[v.instrument];
-    const tones = chordTones(CHORDS.I, spec.range[0] + 3, spec.range[1]);
+    const spec = this.theme.specs[v.instrument];
+    const tones = chordTones(this.theme.tonic, spec.range[0] + 3, spec.range[1]);
     const up = tones.slice(0, 5);
     up.forEach((m, k) => {
       v.sampler(spec.motif).triggerAttackRelease(toNote(m), 0.5, time + k * s16 * 2, 0.45 + k * 0.05);
@@ -588,29 +451,27 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     const end = time + up.length * s16 * 2;
     const top = up[up.length - 1];
     v.sampler(spec.long).triggerAttackRelease(toNote(top), 2.5, end, 0.6);
-    this.ensemble.sampler('glock').triggerAttackRelease(toNote(top + 12 > 96 ? top : top + 12), 2, end, 0.3);
-    this.ensemble.sampler('harp').triggerAttackRelease(voicing(CHORDS.I, 50, 3).map(toNote), 2, end, 0.5);
+    this.theme.finaleTail(this, end, top);
     this.drawAt(end, { agentId: v.agentId, kind: 'task_done', midis: [top], velocity: 0.8, duration: 2.5, index: 9 });
     v.busyUntil = this.stepAt(time) + 16;
   }
 
   private playJoin(ev: AgentEvent, time: number) {
-    // a new voice enters: rising harp arpeggio + a held note that will become the new layer
-    this.harpGliss(time, 55, 84, this.s16(1) / 2, 0.5);
-    this.ensemble.sampler('violin').triggerAttackRelease(toNote(nearestChordTone(this.chord, 74, 69, 81)), 2.2, time + this.s16(4), 0.3);
+    this.theme.join(this, time);
     this.drawAt(time, { agentId: ev.child?.id ?? ev.agentId, kind: 'subagent_join', midis: [], velocity: 0.6, duration: 1, index: 0 });
   }
 
   private playLeave(time: number) {
-    this.harpGliss(time, 55, 84, this.s16(1) / 2, 0.35, -1);
+    this.theme.leave(this, time);
   }
 
   // ------------------------------------------------------------------ fermata
 
   private startFermata(v: Voice, time: number) {
     if (this.fermata) return;
-    this.lockedChord = CHORDS.V7;
-    this.chord = CHORDS.V7;
+    const dominant = this.theme.dominant;
+    this.lockedChord = dominant;
+    this.chord = dominant;
     v.queue = [];
     const pan = v.channel.pan.value * 0.6;
     this.fermataBus.pan.rampTo(pan, 0.5);
@@ -623,7 +484,6 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
 
     const transport = Tone.getTransport();
     const ids: number[] = [];
-    const layer = new Set<string>();
     let parity = 0;
     const sampler = (g: string) => {
       const key = `${g}#${parity}`;
@@ -638,28 +498,16 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     const holdNotes = (t: number, tension: number) => {
       parity = 1 - parity;
       const bar = this.spb * 4;
-      const notes: Array<[string, number, number]> = [
-        ['cello_trem', 45, 0.5],
-        ['cello_trem', 52, 0.42],
-      ];
-      if (tension > 0.1) notes.push(['strings_trem', 57, 0.45], ['strings_trem', 61, 0.42]);
-      if (tension > 0.28) notes.push(['strings_trem', 64, 0.42], ['strings_trem', 67, 0.48]);
-      if (tension > 0.48) notes.push(['strings_trem', 73, 0.45]);
-      if (tension > 0.66) notes.push(['strings_trem', 74, 0.38], ['strings_trem', 81, 0.4]);
-      if (tension > 0.82) notes.push(['strings_trem', 79, 0.42], ['strings_trem', 85, 0.32]);
-      for (const [g, m, vel] of notes) {
-        sampler(g).triggerAttackRelease(toNote(m), bar * 1.6, t, vel);
-        layer.add(`${g}:${m}`);
-      }
-      if (tension > 0.4) sampler('timp_roll').triggerAttackRelease(toNote(33), bar * 1.5, t, 0.25 + tension * 0.5);
+      for (const [g, m, vel] of this.theme.fermataNotes(tension)) sampler(g).triggerAttackRelease(toNote(m), bar * 1.6, t, vel);
+      this.theme.fermataRoll?.(this, sampler, t, bar, tension);
     };
     holdNotes(time, 0);
     // first, the waiting musician's own instrument rings out
     if (v.instrument !== 'percussion') {
-      const spec = SPECS[v.instrument];
-      const m = nearestChordTone(CHORDS.V7, v.lastMidi, spec.range[0], spec.range[1]);
+      const spec = this.theme.specs[v.instrument];
+      const m = nearestChordTone(dominant, v.lastMidi, spec.range[0], spec.range[1]);
       v.sampler(spec.long).triggerAttackRelease(toNote(m), 3, time, 0.55);
-      if (v.instrument === 'piano') v.sampler('piano').triggerAttackRelease(voicing(CHORDS.V7, 45, 4).map(toNote), 4, time, 0.5);
+      if (v.instrument === 'piano') v.sampler(spec.chord).triggerAttackRelease(voicing(dominant, 45, 4).map(toNote), 4, time, 0.5);
     }
     this.drawAt(time, { agentId: v.agentId, kind: 'permission_request', midis: [57, 61, 64, 67], velocity: 0.6, duration: 2, index: 0 });
 
@@ -685,7 +533,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
           const onEighth = step % 2 === 0;
           if (onBeat || (tension > 0.6 && onEighth) || (tension > 0.88 && step % 1 === 0 && step % 4 === 3)) {
             const vel = (onBeat ? 0.3 : 0.18) + tension * 0.35;
-            this.hit(this.ensemble, 'bdrum', 'bdrum_pp_1', t, vel, 0.8);
+            this.theme.heartbeat(this, t, vel);
             this.drawAt(t, { agentId: '__heartbeat', kind: 'permission_request', midis: [], velocity: vel, duration: 0.2, index: step });
           }
         },
@@ -731,8 +579,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     this.fermataVol.volume.setValueAtTime(this.fermataVol.volume.getValueAtTime(time), time);
     this.fermataVol.volume.linearRampToValueAtTime(-40, time + 1.2);
 
-    const ens = this.ensemble;
-    const target = approved ? CHORDS.I : CHORDS.vi;
+    const target = approved ? this.theme.tonic : this.theme.deceptive;
     this.lockedChord = target;
     this.chord = target;
     this.resumeAt = transport.nextSubdivision('1m') > time + 0.4 ? transport.nextSubdivision('1m') : time + this.spb * 4;
@@ -741,22 +588,7 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
     this.padVol.volume.setValueAtTime(-9, time);
     this.padVol.volume.linearRampToValueAtTime(prevPad, time + 4);
 
-    if (approved) {
-      ens.sampler('strings_sus').triggerAttackRelease([62, 66, 69, 74, 78].map(toNote), 5, time, 0.85);
-      ens.sampler('cello_trem').triggerAttackRelease([toNote(38), toNote(50)], 3, time, 0.5);
-      ens.sampler('bass_sus').triggerAttackRelease(toNote(38), 4.5, time, 0.85);
-      ens.sampler('piano').triggerAttackRelease([38, 50, 57, 62, 66].map(toNote), 4, time, 0.6);
-      ens.sampler('timp').triggerAttackRelease(toNote(38), 3, time, 0.8);
-      this.hit(ens, 'cymbal', 'suscymb1_hit_mp_rr1', time, 0.55, 5);
-      this.hit(ens, 'triangle', 'triangle3_hit_v1_rr1', time + 0.02, 0.4, 3);
-      ens.sampler('glock').triggerAttackRelease([toNote(86), toNote(93)], 2.5, time + this.s16(2), 0.4);
-      this.harpGliss(time + 0.03, 50, 90, 0.028, 0.55);
-    } else {
-      ens.sampler('strings_sus').triggerAttackRelease([59, 62, 66, 71].map(toNote), 4, time, 0.6);
-      ens.sampler('bass_sus').triggerAttackRelease(toNote(35), 4, time, 0.6);
-      ens.sampler('piano').triggerAttackRelease([47, 59, 62, 66].map(toNote), 3, time, 0.4);
-      this.harpGliss(time + 0.03, 59, 86, 0.04, 0.35, -1);
-    }
+    this.theme.resolve(this, time, approved);
     this.drawAt(time, {
       agentId: v.agentId,
       kind: 'resolve',
@@ -770,12 +602,16 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
 
   // ------------------------------------------------------------------ helpers
 
-  private stepAt(time: number) {
+  stepAt(time: number) {
     return Math.round(Tone.getTransport().getTicksAtTime(time) / TICKS_PER_16TH);
   }
 
   private drawAt(time: number, info: NoteInfo) {
     Tone.getDraw().schedule(() => this.emit('note', info), time);
+  }
+
+  draw(time: number, info: NoteInfo) {
+    this.drawAt(time, info);
   }
 
   /** Beat phase 0..1 within the current beat, and beat index within the bar. */

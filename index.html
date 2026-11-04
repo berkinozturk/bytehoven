@@ -19,7 +19,10 @@
           <div class="modes" role="group" data-i18n-title="app.mode">
             <a href="./" data-mode="demo" data-i18n="app.demo">Demo</a><a href="?live" data-mode="live" data-i18n="app.live">Live</a>
           </div>
-          <span class="chip ghost" data-i18n="app.theme">Orchestra</span>
+          <label class="theme-pick" data-i18n-title="theme.pick">
+            <span id="theme-name" class="chip ghost"></span>
+            <select id="theme"></select>
+          </label>
         </div>
         <div class="meter-line" id="chord-line" aria-live="off">
           <span class="tempo">♩ = 92</span><span class="sep">·</span><span id="chord">D</span>

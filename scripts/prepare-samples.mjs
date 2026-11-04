@@ -49,6 +49,11 @@ const GROUPS = {
   bdrum: { maxSec: 2.2, fade: 0.8, pitched: false, gainDb: 0 },
   cymbal: { maxSec: 6.0, fade: 1.5, pitched: false, gainDb: -2 },
   triangle: { maxSec: 3.0, fade: 1.0, pitched: false, gainDb: -4 },
+  // Jazz club: tenor sax (VCSL), muted trumpet (VSCO 2 CE), drum kit (Virtuosity Drums)
+  sax_sus: { maxSec: 3.0, fade: 0.8, pitched: true, gainDb: 0 },
+  sax_stac: { maxSec: 0.8, fade: 0.25, pitched: true, gainDb: 0 },
+  trumpet_mute: { maxSec: 3.0, fade: 0.8, pitched: true, gainDb: 0 },
+  kit: { maxSec: 3.5, fade: 1.0, pitched: false, gainDb: 0 },
 };
 
 // ---------------------------------------------------------------- WAV decode
@@ -175,7 +180,10 @@ function encodeMp3(x, rate, kbps = 96) {
 }
 
 // ---------------------------------------------------------------- main
-const manifest = { source: 'VSCO 2 Community Edition (CC0 1.0) — Versilian Studios', groups: {} };
+// Groups without a raw folder keep their existing entry, so one family can be rebuilt on its own.
+const manifestPath = path.join(outDir, 'manifest.json');
+const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : { groups: {} };
+manifest.source = 'VSCO 2 CE, VCSL and Virtuosity Drums (all CC0 1.0) — see CREDITS.md';
 let totalBytes = 0;
 const warnings = [];
 

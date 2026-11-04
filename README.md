@@ -56,6 +56,20 @@ Agent dashboards make you *watch*. Sound notification tools make you *flinch* at
 | Tests → 🥁 Timpani | Docs → 🪈 Flute |
 | Refactor → Double bass | Sub-agents → second chairs |
 
+## 🎷 Themes
+
+Pick a theme from the chip in the top bar. Each one is its own band on its own stage, and the five chairs keep their roles.
+
+| | Orchestra | Jazz club |
+| --- | --- | --- |
+| Stage | concert hall, organ, velvet curtains | brick wall, neon sign, string lights, candle-lit tables |
+| Key and tempo | D major, 92 BPM | F major, 116 BPM, swing |
+| While agents work | a soft string pad | walking bass, ride cymbal, piano comping |
+| Code · research · docs · tests · refactor | piano · violin · flute · timpani · double bass | piano · tenor sax · muted trumpet · drums · double bass |
+| The fermata | A7 in tremolo strings → D | C7♭9 on sax, trumpet and piano, the ride swelling → Fmaj7 |
+
+Chiptune and lo-fi are next. `?theme=jazz` in the URL opens a theme directly.
+
 ## 𝄐 The fermata
 
 ![The fermata: the hall darkens and the spotlight narrows on the waiting pianist](docs/media/fermata.png)
@@ -147,8 +161,8 @@ The pop-out uses the browser's [Document Picture-in-Picture](https://developer.c
 ```
 src/
   core/      event model, the demo simulator and the live source
-  audio/     engine: scheduler, harmony, cadences, the fermata
-  stage/     pixel toolkit, hall, musicians, lights, particles, camera
+  audio/     engine: scheduler, harmony, the fermata; themes/ hold each band's sound
+  stage/     pixel toolkit, hall, jazz club, musicians, lights, particles, camera
   ui/        live score strip, programme feed, tension meter, detail drawer
   i18n/      en · tr
 server/live/  read-only session reader, transcript parser, local endpoints
@@ -163,7 +177,7 @@ The event model carries **only** a tool name, a short target (such as a file nam
 <details>
 <summary><b>Rebuilding the samples</b></summary>
 
-The processed MP3s (about 7 MB) are committed, so you don't need this to run Bytehoven.
+The processed MP3s (about 9 MB) are committed, so you don't need this to run Bytehoven.
 
 To rebuild them, download the instrument folders listed in [CREDITS.md](CREDITS.md) from [VSCO-2-CE](https://github.com/sgossner/VSCO-2-CE) into `samples-raw/<group>/`, then run:
 
@@ -195,7 +209,10 @@ The script trims the silence before each attack, caps the length with a fade, pe
 - [ ] **Box office**: today's tokens per musician, de-duplicated by message id, with cache reads shown separately (they're re-read context, not new work)
 - [x] **Conducting**: hand a musician a new part (`claude -p`, prompt via stdin, narrow tool permissions, `rm` / `git push` / `curl` blocked)
   - [ ] next: the conductor plans first: one tool-less `claude -p --json-schema` call returns who plays what; the plan is validated, and nothing starts if it's malformed. A dry-run shows the plan without running it
-- [ ] **Themes**, each with its own stage and sound: Jazz club 🎷, Chiptune arcade 👾, Lo-fi rainy room 🌧
+- [x] **Themes**: a theme picker; each theme is its own band (sound) on its own stage (pixel art)
+  - [x] Jazz club 🎷
+  - [ ] Chiptune arcade 👾 (synthesised, no samples)
+  - [ ] Lo-fi rainy room 🌧 (FM piano, kalimba, the drum kit's lo-fi mics, rain and vinyl crackle)
 - [ ] **Mixer**: which event plays which sound, instrument assignment per role
 - [ ] **"Today's symphony"**: export a session as a short video/GIF with sound, ready to share
 - [ ] Codex and Gemini CLI support
@@ -212,7 +229,7 @@ npm run build       # production build in dist/
 
 ## 🙏 Credits
 
-Instrument samples: **VS Chamber Orchestra: Community Edition** by [Versilian Studios](https://vis.versilstudios.net/vsco-community.html), CC0. Fonts: Cormorant Garamond and Inter (SIL OFL 1.1). Everything else in the repo, including all the pixel art, is original. Full list in [CREDITS.md](CREDITS.md).
+Instrument samples: **VS Chamber Orchestra: Community Edition**, **VCSL** and **Virtuosity Drums** by [Versilian Studios](https://vis.versilstudios.net/vsco-community.html), all CC0. Fonts: Cormorant Garamond and Inter (SIL OFL 1.1). Everything else in the repo, including all the pixel art, is original. Full list in [CREDITS.md](CREDITS.md).
 
 ## License
 

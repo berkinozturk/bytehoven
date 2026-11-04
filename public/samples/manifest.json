@@ -1,5 +1,5 @@
 {
-  "source": "VSCO 2 Community Edition (CC0 1.0) — Versilian Studios",
+  "source": "VSCO 2 CE, VCSL and Virtuosity Drums (all CC0 1.0) — see CREDITS.md",
   "groups": {
     "piano": {
       "pitched": true,
@@ -269,6 +269,77 @@
       "samples": {
         "triangle3_hit_v1_rr1": "triangle/triangle3_hit_v1_rr1.mp3",
         "triangle3_hit_v1_rr2": "triangle/triangle3_hit_v1_rr2.mp3"
+      }
+    },
+    "sax_sus": {
+      "pitched": true,
+      "samples": {
+        "A#2": "sax_sus/As2.mp3",
+        "A#3": "sax_sus/As3.mp3",
+        "A#4": "sax_sus/As4.mp3",
+        "A#5": "sax_sus/As5.mp3",
+        "C3": "sax_sus/C3.mp3",
+        "C4": "sax_sus/C4.mp3",
+        "C5": "sax_sus/C5.mp3",
+        "C6": "sax_sus/C6.mp3",
+        "D3": "sax_sus/D3.mp3",
+        "D4": "sax_sus/D4.mp3",
+        "D5": "sax_sus/D5.mp3",
+        "E3": "sax_sus/E3.mp3",
+        "E4": "sax_sus/E4.mp3",
+        "E5": "sax_sus/E5.mp3",
+        "F#3": "sax_sus/Fs3.mp3",
+        "F#4": "sax_sus/Fs4.mp3",
+        "F#5": "sax_sus/Fs5.mp3",
+        "G#3": "sax_sus/Gs3.mp3",
+        "G#4": "sax_sus/Gs4.mp3",
+        "G#5": "sax_sus/Gs5.mp3"
+      }
+    },
+    "sax_stac": {
+      "pitched": true,
+      "samples": {
+        "A#2": "sax_stac/As2.mp3",
+        "A#4": "sax_stac/As4.mp3",
+        "A3": "sax_stac/A3.mp3",
+        "A5": "sax_stac/A5.mp3",
+        "C3": "sax_stac/C3.mp3",
+        "C4": "sax_stac/C4.mp3",
+        "C5": "sax_stac/C5.mp3",
+        "C6": "sax_stac/C6.mp3"
+      }
+    },
+    "trumpet_mute": {
+      "pitched": true,
+      "samples": {
+        "A#3": "trumpet_mute/As3.mp3",
+        "A#4": "trumpet_mute/As4.mp3",
+        "A5": "trumpet_mute/A5.mp3",
+        "C4": "trumpet_mute/C4.mp3",
+        "D4": "trumpet_mute/D4.mp3",
+        "D5": "trumpet_mute/D5.mp3",
+        "F5": "trumpet_mute/F5.mp3",
+        "G4": "trumpet_mute/G4.mp3"
+      }
+    },
+    "kit": {
+      "pitched": false,
+      "samples": {
+        "crash_crash_vl2_rr1": "kit/crash_crash_vl2_rr1.mp3",
+        "hh_closed_vl2_rr1": "kit/hh_closed_vl2_rr1.mp3",
+        "hh_closed_vl3_rr1": "kit/hh_closed_vl3_rr1.mp3",
+        "hh_open_vl2_rr1": "kit/hh_open_vl2_rr1.mp3",
+        "hh_pedal_vl2_rr1": "kit/hh_pedal_vl2_rr1.mp3",
+        "kick_snoff_vl1_rr1": "kit/kick_snoff_vl1_rr1.mp3",
+        "kick_snoff_vl2_rr1": "kit/kick_snoff_vl2_rr1.mp3",
+        "ride_bell_vl2_rr1": "kit/ride_bell_vl2_rr1.mp3",
+        "ride_ride_vl1_rr1": "kit/ride_ride_vl1_rr1.mp3",
+        "ride_ride_vl2_rr1": "kit/ride_ride_vl2_rr1.mp3",
+        "ride_ride_vl3_rr1": "kit/ride_ride_vl3_rr1.mp3",
+        "snare_center_vl14": "kit/snare_center_vl14.mp3",
+        "snare_center_vl6": "kit/snare_center_vl6.mp3",
+        "snare_crossstick_vl8": "kit/snare_crossstick_vl8.mp3",
+        "snare_rimshot_vl6": "kit/snare_rimshot_vl6.mp3"
       }
     }
   }

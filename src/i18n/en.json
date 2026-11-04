@@ -205,5 +205,45 @@
       "name": "Needs you",
       "desc": "the music holds one chord, tension rises"
     }
+  },
+  "theme": {
+    "orchestra": "Orchestra",
+    "jazz": "Jazz club",
+    "chiptune": "Chiptune arcade",
+    "lofi": "Lo-fi rainy room",
+    "soon": "soon",
+    "pick": "Theme"
+  },
+  "themes": {
+    "jazz": {
+      "app": {
+        "theme": "Jazz club"
+      },
+      "instrument": {
+        "piano": "Piano",
+        "percussion": "Drums",
+        "violin": "Tenor sax",
+        "flute": "Muted trumpet",
+        "contrabass": "Double bass"
+      },
+      "tour": {
+        "welcome": {
+          "title": "Welcome to the club",
+          "body": "Every AI coding agent is a musician in this band. Whatever it does becomes music, so you can follow your agents just by listening."
+        },
+        "ines": {
+          "title": "Ines · tenor sax",
+          "body": "Ines does research: web searches and docs. Each tool call is a short phrase on the sax. If she calls in a helper, a second sax walks on stage."
+        },
+        "mira": {
+          "title": "Mira · muted trumpet",
+          "body": "Mira writes the documentation. When an agent reads a file, its musician turns a page on the stand and plays a soft muted note."
+        },
+        "otto": {
+          "title": "Otto · drums",
+          "body": "Otto runs the tests. Green tests end in a drum fill and a big chord like this one. A failure is a rimshot and a sour chord."
+        }
+      }
+    }
   }
 }

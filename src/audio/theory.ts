@@ -50,9 +50,9 @@ export function chordTones(chord: Chord, lo: number, hi: number): number[] {
   return out;
 }
 
-export function scaleTones(lo: number, hi: number): number[] {
+export function scaleTones(lo: number, hi: number, scale: number[] = D_MAJOR_SCALE): number[] {
   const out: number[] = [];
-  for (let m = lo; m <= hi; m++) if (D_MAJOR_SCALE.includes(pc(m))) out.push(m);
+  for (let m = lo; m <= hi; m++) if (scale.includes(pc(m))) out.push(m);
   return out;
 }
 
@@ -66,8 +66,8 @@ export function nearestChordTone(chord: Chord, prev: number, lo: number, hi: num
 }
 
 /** Next diatonic step from `from` in direction `dir`, bouncing inside the range. */
-export function scaleStep(from: number, dir: 1 | -1, lo: number, hi: number): { midi: number; dir: 1 | -1 } {
-  const tones = scaleTones(lo, hi);
+export function scaleStep(from: number, dir: 1 | -1, lo: number, hi: number, scale: number[] = D_MAJOR_SCALE): { midi: number; dir: 1 | -1 } {
+  const tones = scaleTones(lo, hi, scale);
   let i = tones.findIndex((m) => m >= from);
   if (i < 0) i = tones.length - 1;
   let j = i + dir;

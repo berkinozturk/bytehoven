@@ -5,7 +5,8 @@ import type { AgentEvent, AgentInfo } from './core/events';
 import { makeEvent } from './core/events';
 import { DemoSimulator, DEMO_AGENTS, SUB_AGENT } from './core/simulator';
 import { LiveSource } from './core/live';
-import { applyStatic, getLang, onLang, setLang, t, type Lang } from './i18n';
+import { applyStatic, getLang, onLang, setLang, setVariant, t, type Lang } from './i18n';
+import { COMING, THEMES, chooseTheme, chosenTheme, type ThemeId } from './themes';
 import { Stage, type Seat } from './stage/stage';
 import { W } from './stage/hall';
 import { Score } from './ui/score';
@@ -55,10 +56,15 @@ const pan = (x: number) => Math.max(-0.85, Math.min(0.85, ((x - W / 2) / (W / 2)
 const appRoot = document.getElementById('app')!;
 const $ = <T extends HTMLElement>(sel: string) => appRoot.querySelector<T>(sel)!;
 
+const THEME = chosenTheme();
+setVariant(THEME === 'orchestra' ? null : THEME);
+
 async function main() {
   applyStatic();
-  const engine = new AudioEngine();
-  const stage = new Stage();
+  const engine = new AudioEngine(THEMES[THEME].sound);
+  const stage = new Stage(THEMES[THEME].stage);
+  document.documentElement.dataset.theme = THEME;
+  $('.tempo').textContent = `♩ = ${THEMES[THEME].sound.bpm}`;
   const live = LIVE ? new LiveSource() : null;
   const sim: Source = live ?? new DemoSimulator();
   document.documentElement.classList.toggle('live', LIVE);
@@ -209,11 +215,29 @@ async function main() {
     mute.title = t(m ? 'top.unmute' : 'top.mute');
     engine.setMuted(m);
   };
+  // ---- theme picker
+  const themePick = $<HTMLSelectElement>('#theme');
+  const paintThemes = () => {
+    themePick.innerHTML = '';
+    for (const id of [...(Object.keys(THEMES) as ThemeId[]), ...COMING]) {
+      const o = document.createElement('option');
+      o.value = id;
+      o.disabled = (COMING as readonly string[]).includes(id);
+      o.textContent = o.disabled ? `${t(`theme.${id}`)} · ${t('theme.soon')}` : t(`theme.${id}`);
+      themePick.append(o);
+    }
+    themePick.value = THEME;
+    $('#theme-name').textContent = t(`theme.${THEME}`);
+  };
+  paintThemes();
+  themePick.onchange = () => chooseTheme(themePick.value as ThemeId);
+
   const paintLang = () => appRoot.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => b.classList.toggle('on', b.dataset.lang === getLang()));
   appRoot.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => (b.onclick = () => setLang(b.dataset.lang as Lang)));
   onLang(() => {
     applyStatic();
     if (appRoot.ownerDocument !== document) applyStatic(appRoot.ownerDocument);
+    paintThemes();
     paintLang();
     feed.rerender();
     if (detail.current) detail.open(detailData(detail.current));
