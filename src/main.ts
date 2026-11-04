@@ -3,7 +3,7 @@ import * as Tone from 'tone';
 import { AudioEngine } from './audio/engine';
 import type { AgentEvent, AgentInfo } from './core/events';
 import { makeEvent } from './core/events';
-import { DemoSimulator, DEMO_AGENTS } from './core/simulator';
+import { DemoSimulator, DEMO_AGENTS, SUB_AGENT } from './core/simulator';
 import { LiveSource } from './core/live';
 import { applyStatic, getLang, onLang, setLang, t, type Lang } from './i18n';
 import { Stage, type Seat } from './stage/stage';
@@ -90,7 +90,9 @@ async function main() {
   if (!LIVE) for (const a of DEMO_AGENTS) addAgent(a);
 
   // ---- events flow: simulator → (sound + stage + feed)
-  sim.on('event', (ev) => {
+  sim.on('event', (ev) => perform(ev));
+  /** Everything an event does: sound, stage, programme, drawer, permission card. */
+  function perform(ev: AgentEvent) {
     if (ev.kind === 'subagent_join' && ev.child) {
       if (agents.has(ev.child.id)) return; // a chair being refilled before its musician left
       addAgent(ev.child, !ev.seated);
@@ -108,14 +110,15 @@ async function main() {
       engine.removeVoice(id, 4);
       setTimeout(() => agents.delete(id), 6000);
     }
-    if (ev.kind === 'permission_request') showPermission(ev);
+    // the tour's signal lesson plays a fermata without the card
+    if (ev.kind === 'permission_request' && !tour.isOpen) showPermission(ev);
     if (ev.kind === 'permission_resolved' && ev.agentId === permAgent) {
       // answered somewhere else (in Claude Code itself)
       permAgent = null;
       perm.hidden = true;
     }
     if (detail.current) refreshDetail();
-  });
+  }
   engine.on('note', (n) => {
     stage.onNote(n);
     score.note(n);
@@ -226,7 +229,50 @@ async function main() {
     otto: [['test_pass', 'Bash', 'npm test', 0]],
   };
   let phraseTimers: number[] = [];
+  // The signal lesson: who plays each signal, and what they "do".
+  const SIGNALS: Record<string, [string, Partial<AgentEvent>]> = {
+    file_read: ['mira', { tool: 'Read', target: 'README.md' }],
+    file_write: ['clara', { tool: 'Edit', target: 'app.ts' }],
+    bash: ['bruno', { tool: 'Bash', target: 'npm run build' }],
+    thinking: ['ines', {}],
+    test_fail: ['otto', { tool: 'Bash', target: 'npm test' }],
+    test_pass: ['otto', { tool: 'Bash', target: 'npm test' }],
+    subagent_join: ['ines', { tool: 'Agent', child: SUB_AGENT }],
+    task_done: ['mira', {}],
+    permission_request: ['clara', { tool: 'Bash', target: 'git push' }],
+  };
+  let lessonTimers: number[] = [];
+  let lessonLeo = false;
+  /** End whatever the last signal left behind (a held fermata, Leo on stage). */
+  const stopLesson = () => {
+    for (const tm of lessonTimers) clearTimeout(tm);
+    lessonTimers = [];
+    if (engine.fermataAgent) perform(makeEvent(engine.fermataAgent, 'permission_resolved', { approved: true }));
+    if (lessonLeo) perform(makeEvent('ines', 'subagent_leave', { child: SUB_AGENT }));
+    lessonLeo = false;
+  };
+  const playSignal = (kind: string) => {
+    stopLesson();
+    const later = (ms: number, fn: () => void) => lessonTimers.push(window.setTimeout(fn, ms));
+    const [who, extra] = SIGNALS[kind];
+    stage.focus(who);
+    if (kind === 'subagent_join') {
+      if (agents.has(SUB_AGENT.id)) return void engine.handle(makeEvent(who, 'subagent_join', extra)); // Leo is already on stage: just the sound
+      perform(makeEvent(who, 'subagent_join', extra));
+      lessonLeo = true;
+      later(6000, () => {
+        lessonLeo = false;
+        perform(makeEvent(who, 'subagent_leave', { child: SUB_AGENT }));
+      });
+    } else if (kind === 'permission_request') {
+      perform(makeEvent(who, 'permission_request', extra));
+      later(4500, () => perform(makeEvent(who, 'permission_resolved', { approved: true })));
+    } else perform(makeEvent(who, kind as AgentEvent['kind'], extra));
+    later(kind === 'permission_request' ? 6500 : 3200, () => tour.isOpen && stage.focus(null));
+  };
+
   const tour = new Tour({
+    signal: playSignal,
     focus: (id) => stage.focus(id),
     stageRect: (id) => stage.screenRect(id),
     stageEl: $('#stage'),
@@ -265,6 +311,7 @@ async function main() {
     const wasRunning = sim.isRunning;
     sim.setPaused(true);
     tour.start(() => {
+      stopLesson();
       markToured();
       sim.setPaused(false);
       if (!wasRunning) sim.start();

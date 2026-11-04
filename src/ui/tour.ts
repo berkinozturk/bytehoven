@@ -9,7 +9,7 @@ import { t } from '../i18n';
 type Target =
   | { kind: 'center' }
   | { kind: 'stage'; id: string } // a musician, or '__conductor'
-  | { kind: 'el'; sel: string; side: 'left' | 'top' };
+  | { kind: 'el'; sel: string; side: 'left' | 'top' | 'over' };
 
 interface Step {
   key: string;
@@ -18,7 +18,12 @@ interface Step {
   focus?: string;
   /** Called when the step opens (e.g. let the musician play). */
   enter?: () => void;
+  /** Show the signal lesson: one button per sound. */
+  lesson?: boolean;
 }
+
+/** The signals the lesson teaches, in the order they are listed. */
+const SIGNALS = ['file_read', 'file_write', 'bash', 'thinking', 'test_fail', 'test_pass', 'subagent_join', 'task_done', 'permission_request'];
 
 export interface TourHooks {
   focus: (id: string | null) => void;
@@ -26,6 +31,8 @@ export interface TourHooks {
   stageRect: (id: string) => { x: number; y: number; w: number; h: number } | null;
   stageEl: HTMLElement;
   play: (id: string) => void;
+  /** Play one signal on stage (a musician makes that sound and gesture). */
+  signal: (kind: string) => void;
 }
 
 const FERMATA_SVG = `<svg viewBox="0 0 32 20" aria-hidden="true"><path d="M3 16 C 3 4, 29 4, 29 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="14" r="2.4" fill="currentColor"/></svg>`;
@@ -65,6 +72,7 @@ export class Tour {
       m('bruno'),
       m('otto'),
       { key: 'conductor', target: { kind: 'stage', id: '__conductor' } },
+      { key: 'signals', target: { kind: 'el', sel: '.score', side: 'over' }, lesson: true },
       { key: 'score', target: { kind: 'el', sel: '.score', side: 'top' } },
       { key: 'fermata', target: { kind: 'el', sel: '.tension', side: 'left' } },
       { key: 'feed', target: { kind: 'el', sel: '.feed', side: 'left' } },
@@ -142,11 +150,17 @@ export class Tour {
     if (animate) step.enter?.();
     const dots = this.steps.map((_, k) => `<i class="${k === this.i ? 'on' : k < this.i ? 'done' : ''}"></i>`).join('');
     const icon = step.key === 'fermata' || first || last ? `<div class="tour-icon">${FERMATA_SVG}</div>` : '';
+    const lesson = step.lesson
+      ? `<ul class="tour-lesson">${SIGNALS.map((k) => `<li><button data-signal="${k}"><span class="play" aria-hidden="true">▶</span>${t(`lesson.${k}.name`)}</button></li>`).join('')}</ul>
+      <div class="tour-lesson-now" aria-live="polite"></div>`
+      : '';
+    this.card.classList.toggle('wide', !!step.lesson);
     this.card.innerHTML = `
       ${icon}
       <div class="tour-count">${this.i + 1} / ${this.steps.length}</div>
       <h3>${t(`tour.${step.key}.title`)}</h3>
       <p>${t(`tour.${step.key}.body`)}</p>
+      ${lesson}
       <div class="tour-dots">${dots}</div>
       <div class="tour-actions">
         ${last ? '' : `<button class="tour-skip">${t('tour.skip')}</button>`}
@@ -157,6 +171,14 @@ export class Tour {
     this.card.querySelector<HTMLButtonElement>('.tour-next')!.onclick = () => this.go(1);
     this.card.querySelector<HTMLButtonElement>('.tour-back')?.addEventListener('click', () => this.go(-1));
     this.card.querySelector<HTMLButtonElement>('.tour-skip')?.addEventListener('click', () => this.finish());
+    this.card.querySelectorAll<HTMLButtonElement>('[data-signal]').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.card.querySelectorAll('[data-signal]').forEach((x) => x.classList.toggle('on', x === b));
+        const now = this.card.querySelector('.tour-lesson-now')!;
+        now.innerHTML = `<b>${t(`lesson.${b.dataset.signal}.name`)}</b> · ${t(`lesson.${b.dataset.signal}.desc`)}`;
+        this.hooks.signal(b.dataset.signal!);
+      }),
+    );
     if (animate) {
       this.card.classList.remove('pop');
       void this.card.offsetWidth;
@@ -193,8 +215,15 @@ export class Tour {
         ring = { x: b.left + 6, y: b.top + 6, w: b.width - 12, h: b.height - 12 };
       }
     }
-    if (ring) {
-      this.ring.classList.remove('none');
+    if (target.kind === 'el' && target.side === 'over') {
+      // sit on top of the element (the score), leaving the stage in view
+      const el = document.querySelector<HTMLElement>(target.sel);
+      const b = el?.getBoundingClientRect() ?? new DOMRect(0, vh, vw, 0);
+      this.ring.classList.add('none', 'clear');
+      cx = b.left + b.width / 2 - cw / 2;
+      cy = b.bottom - ch - 12;
+    } else if (ring) {
+      this.ring.classList.remove('none', 'clear');
       Object.assign(this.ring.style, { left: `${ring.x}px`, top: `${ring.y}px`, width: `${ring.w}px`, height: `${ring.h}px` });
       const side = target.kind === 'el' ? target.side : ring.x + ring.w + cw + 32 < vw ? 'right' : 'left';
       if (side === 'top') {
@@ -209,6 +238,7 @@ export class Tour {
       }
     } else {
       this.ring.classList.add('none');
+      this.ring.classList.remove('clear');
       const s = this.hooks.stageEl.getBoundingClientRect();
       Object.assign(this.ring.style, { left: `${s.left + s.width / 2}px`, top: `${s.top + s.height / 2}px`, width: '0px', height: '0px' });
       cx = s.left + s.width / 2 - cw / 2;

@@ -149,6 +149,10 @@
     "end": {
       "title": "Enjoy the concert",
       "body": "Turn the sound up a little and let your agents play. You can replay this tour any time from the top bar."
+    },
+    "signals": {
+      "title": "Learn the signals",
+      "body": "Tap a signal to hear it. Every musician plays it in their own voice, but the meaning is always the same."
     }
   },
   "pip": {
@@ -159,5 +163,43 @@
     "empty": "No Claude Code session is running. Start one and its musician walks on stage.",
     "unavailable": "Live mode needs the dev server: run npm run dev.",
     "demoLink": "Watch the demo instead"
+  },
+  "lesson": {
+    "file_read": {
+      "name": "Reading a file",
+      "desc": "a page turns, one soft note"
+    },
+    "file_write": {
+      "name": "Writing a file",
+      "desc": "a full chord"
+    },
+    "bash": {
+      "name": "Running a command",
+      "desc": "a repeated pulse"
+    },
+    "thinking": {
+      "name": "Thinking",
+      "desc": "a quiet tuning A"
+    },
+    "test_fail": {
+      "name": "Something broke",
+      "desc": "a sour cluster, red sparks"
+    },
+    "test_pass": {
+      "name": "Tests passed",
+      "desc": "a cadence that lands home"
+    },
+    "subagent_join": {
+      "name": "A sub-agent joins",
+      "desc": "a harp sweep, a second chair walks on"
+    },
+    "task_done": {
+      "name": "Finished a part",
+      "desc": "a short finale and a bow"
+    },
+    "permission_request": {
+      "name": "Needs you",
+      "desc": "the music holds one chord, tension rises"
+    }
   }
 }

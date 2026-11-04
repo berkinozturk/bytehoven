@@ -84,7 +84,7 @@ npm run dev
 
 Open **http://127.0.0.1:5180** and press **Begin the concert** (browsers only allow sound after a click). The server only listens on `127.0.0.1`.
 
-On your first visit, a short **guided tour** introduces the orchestra. Each musician steps into the spotlight and plays a phrase in their own voice, then the tour shows you the conductor, the live score, the fermata and the programme. Use Enter / → to continue, ← to go back and Esc to skip. You can replay it any time with the **?** button in the top bar.
+On your first visit, a short **guided tour** introduces the orchestra. Each musician steps into the spotlight and plays a phrase in their own voice. A **signal lesson** lets you play every sound on its own (reading, writing, a command, thinking, a failure, passing tests, a sub-agent joining, a finished part, the fermata) and tells you what it means, so you can follow your agents by ear. Then the tour shows you the conductor, the live score, the fermata and the programme. Use Enter / → to continue, ← to go back and Esc to skip. You can replay it any time with the **?** button in the top bar.
 
 **Things to try**
 
@@ -178,7 +178,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
 
 - [x] **Demo mode**: Orchestra theme, five musicians, fermata, sub-agents, errors, live score
 - [x] **First-run tour**: each musician steps into the spotlight and plays, then the conductor, live score, fermata and programme are introduced
-  - [ ] **A sound lesson**: let the tour play each signal on its own (a file read, a write, a shell command, a failing and a passing test, a sub-agent joining, a finished turn, the fermata) and say what it means, so you can follow your agents by ear
+  - [x] **A sound lesson**: let the tour play each signal on its own (a file read, a write, a shell command, a failing and a passing test, a sub-agent joining, a finished turn, the fermata) and say what it means, so you can follow your agents by ear
 - [x] **Next to Claude Code**: a compact layout for side panels, plus an always-on-top pop-out window
 - [x] **Live mode**: running sessions and sub-agents read live, read-only; a permission hook for the fermata with real Approve / Deny
   - [ ] choose which session sits in which chair (by folder), instead of first come, first seated

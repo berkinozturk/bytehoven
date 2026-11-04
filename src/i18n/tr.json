@@ -149,6 +149,10 @@
     "end": {
       "title": "Konserin tadını çıkar",
       "body": "Sesi biraz aç ve ajanlarını çalmaya bırak. Bu turu üst çubuktan istediğin zaman yeniden izleyebilirsin."
+    },
+    "signals": {
+      "title": "Sinyalleri öğren",
+      "body": "Bir sinyale dokun, sesini duy. Her müzisyen kendi sesiyle çalar ama anlamı hep aynıdır."
     }
   },
   "pip": {
@@ -159,5 +163,43 @@
     "empty": "Çalışan bir Claude Code oturumu yok. Bir tane başlat, müzisyeni sahneye yürüsün.",
     "unavailable": "Canlı mod için geliştirme sunucusu gerekir: npm run dev çalıştır.",
     "demoLink": "Onun yerine demoyu izle"
+  },
+  "lesson": {
+    "file_read": {
+      "name": "Dosya okuyor",
+      "desc": "sayfa çevrilir, tek yumuşak nota"
+    },
+    "file_write": {
+      "name": "Dosya yazıyor",
+      "desc": "dolu bir akor"
+    },
+    "bash": {
+      "name": "Komut çalıştırıyor",
+      "desc": "tekrarlanan bir nabız"
+    },
+    "thinking": {
+      "name": "Düşünüyor",
+      "desc": "sessiz bir akort La'sı"
+    },
+    "test_fail": {
+      "name": "Bir şey bozuldu",
+      "desc": "ekşi bir küme, kırmızı kıvılcımlar"
+    },
+    "test_pass": {
+      "name": "Testler geçti",
+      "desc": "eve dönen bir kadans"
+    },
+    "subagent_join": {
+      "name": "Alt ajan katıldı",
+      "desc": "arp süpürmesi, ikinci sandalye sahneye yürür"
+    },
+    "task_done": {
+      "name": "Bir bölümü bitirdi",
+      "desc": "kısa bir final ve selam"
+    },
+    "permission_request": {
+      "name": "Seni bekliyor",
+      "desc": "müzik tek akorda durur, gerilim yükselir"
+    }
   }
 }

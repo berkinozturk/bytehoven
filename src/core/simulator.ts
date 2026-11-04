@@ -17,7 +17,7 @@ export const DEMO_AGENTS: AgentInfo[] = [
   { id: 'otto', name: 'Otto', role: 'test', instrument: 'percussion', session: 'fermata · ci' },
 ];
 
-const SUB_AGENT: AgentInfo = {
+export const SUB_AGENT: AgentInfo = {
   id: 'leo',
   name: 'Leo',
   role: 'research',
