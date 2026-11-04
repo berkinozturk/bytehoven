@@ -111,6 +111,15 @@ npx bytehoven hooks --write
 
 It copies the hook to `~/.bytehoven/hook.mjs`, so it keeps working after npx clears its cache, and adds it to `~/.claude/settings.json` after saving a backup. `npx bytehoven hooks` shows the change without making it, and `--remove` takes it out again.
 
+**As a Claude Code plugin.** Inside Claude Code:
+
+```text
+/plugin marketplace add berkinozturk/bytehoven
+/plugin install bytehoven@bytehoven
+```
+
+The plugin adds the fermata's permission hook for you, so you don't need `hooks --write`. Run `/bytehoven:open` to start Bytehoven from any session. If you also installed the hook with npx, that's fine: a request that arrives twice still plays as one fermata.
+
 <details>
 <summary><b>From source</b></summary>
 
