@@ -244,6 +244,44 @@
           "body": "Otto runs the tests. Green tests end in a drum fill and a big chord like this one. A failure is a rimshot and a sour chord."
         }
       }
+    },
+    "lofi": {
+      "app": {
+        "theme": "Lo-fi room"
+      },
+      "instrument": {
+        "piano": "Upright piano",
+        "percussion": "Drums",
+        "violin": "Jazz guitar",
+        "flute": "Vibraphone",
+        "contrabass": "Bass guitar"
+      },
+      "tour": {
+        "welcome": {
+          "title": "Welcome to the room",
+          "body": "Every AI coding agent is a musician in this little band. Whatever it does becomes a lazy beat, so you can follow your agents just by listening."
+        },
+        "clara": {
+          "title": "Clara · upright piano",
+          "body": "Clara writes code. Every file she edits lands as a soft, rolled chord. Between steps she thinks, and a thinking musician quietly noodles."
+        },
+        "ines": {
+          "title": "Ines · jazz guitar",
+          "body": "Ines does research: web searches and docs. Each tool call is a short lick on the guitar. If she calls in a helper, a second guitarist joins in."
+        },
+        "mira": {
+          "title": "Mira · vibraphone",
+          "body": "Mira writes the documentation. When an agent reads a file, its musician turns a page and the vibes ring a soft note."
+        },
+        "bruno": {
+          "title": "Bruno · bass guitar",
+          "body": "Bruno runs commands and builds. Shell commands sound like a bass pulse. When there is nothing to do, a musician dozes off. Zzz."
+        },
+        "otto": {
+          "title": "Otto · drums",
+          "body": "Otto runs the tests. Green tests end in a soft fill and a warm chord like this one. A failure is a rimshot and a sour chord."
+        }
+      }
     }
   }
 }

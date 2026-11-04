@@ -2,7 +2,7 @@
 /**
  * Bytehoven sample preparation.
  *
- * Takes raw VSCO 2 Community Edition WAV files (CC0) and turns them into
+ * Takes raw CC0 WAV files (VSCO 2 CE, VCSL, Virtuosity Drums, FreePats) and turns them into
  * small, tightly trimmed mono MP3s plus a manifest the audio engine reads.
  *
  *   node scripts/prepare-samples.mjs <raw-dir> [out-dir=public/samples]
@@ -54,6 +54,11 @@ const GROUPS = {
   sax_stac: { maxSec: 0.8, fade: 0.25, pitched: true, gainDb: 0 },
   trumpet_mute: { maxSec: 3.0, fade: 0.8, pitched: true, gainDb: 0 },
   kit: { maxSec: 3.5, fade: 1.0, pitched: false, gainDb: 0 },
+  // Lo-fi room: upright piano and soft vibes (VCSL), jazz guitar and finger bass (FreePats)
+  upright: { maxSec: 4.0, fade: 1.2, pitched: true, gainDb: 0 },
+  vibes: { maxSec: 3.5, fade: 1.0, pitched: true, gainDb: 0 },
+  guitar: { maxSec: 2.5, fade: 0.8, pitched: true, gainDb: 0 },
+  ebass: { maxSec: 2.0, fade: 0.5, pitched: true, gainDb: 0 },
 };
 
 // ---------------------------------------------------------------- WAV decode
@@ -183,7 +188,7 @@ function encodeMp3(x, rate, kbps = 96) {
 // Groups without a raw folder keep their existing entry, so one family can be rebuilt on its own.
 const manifestPath = path.join(outDir, 'manifest.json');
 const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : { groups: {} };
-manifest.source = 'VSCO 2 CE, VCSL and Virtuosity Drums (all CC0 1.0) — see CREDITS.md';
+manifest.source = 'VSCO 2 CE, VCSL, Virtuosity Drums and FreePats (all CC0 1.0) — see CREDITS.md';
 let totalBytes = 0;
 const warnings = [];
 

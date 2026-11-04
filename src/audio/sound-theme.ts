@@ -80,6 +80,8 @@ export interface SoundTheme {
   specs: Record<Melodic, InstrumentSpec>;
   env: Record<string, { attack: number; release: number }>;
   reverb: { decay: number; wet: number; preDelay: number };
+  /** A worn-tape colour on the whole band: a dull top end, a slow wobble, vinyl crackle. */
+  texture?: { lowpass: number; wobble: number; crackle: boolean };
 
   /** Warm-up and count-in. Returns the context time of the first downbeat. */
   intro(k: Kit, now: number): number;

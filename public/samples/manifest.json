@@ -1,5 +1,5 @@
 {
-  "source": "VSCO 2 CE, VCSL and Virtuosity Drums (all CC0 1.0) — see CREDITS.md",
+  "source": "VSCO 2 CE, VCSL, Virtuosity Drums and FreePats (all CC0 1.0) — see CREDITS.md",
   "groups": {
     "piano": {
       "pitched": true,
@@ -340,6 +340,68 @@
         "snare_center_vl6": "kit/snare_center_vl6.mp3",
         "snare_crossstick_vl8": "kit/snare_crossstick_vl8.mp3",
         "snare_rimshot_vl6": "kit/snare_rimshot_vl6.mp3"
+      }
+    },
+    "upright": {
+      "pitched": true,
+      "samples": {
+        "A3": "upright/A3.mp3",
+        "A4": "upright/A4.mp3",
+        "A5": "upright/A5.mp3",
+        "A6": "upright/A6.mp3",
+        "C#3": "upright/Cs3.mp3",
+        "C#4": "upright/Cs4.mp3",
+        "C#5": "upright/Cs5.mp3",
+        "C#6": "upright/Cs6.mp3",
+        "C#7": "upright/Cs7.mp3",
+        "F3": "upright/F3.mp3",
+        "F4": "upright/F4.mp3",
+        "F5": "upright/F5.mp3",
+        "F6": "upright/F6.mp3",
+        "F7": "upright/F7.mp3"
+      }
+    },
+    "vibes": {
+      "pitched": true,
+      "samples": {
+        "A3": "vibes/A3.mp3",
+        "A5": "vibes/A5.mp3",
+        "B4": "vibes/B4.mp3",
+        "C4": "vibes/C4.mp3",
+        "C6": "vibes/C6.mp3",
+        "D5": "vibes/D5.mp3",
+        "E4": "vibes/E4.mp3",
+        "E6": "vibes/E6.mp3",
+        "F3": "vibes/F3.mp3",
+        "F5": "vibes/F5.mp3",
+        "G4": "vibes/G4.mp3"
+      }
+    },
+    "guitar": {
+      "pitched": true,
+      "samples": {
+        "A2": "guitar/A2.mp3",
+        "B3": "guitar/B3.mp3",
+        "B4": "guitar/B4.mp3",
+        "C#6": "guitar/Cs6.mp3",
+        "C2": "guitar/C2.mp3",
+        "C3": "guitar/C3.mp3",
+        "D5": "guitar/D5.mp3",
+        "E3": "guitar/E3.mp3",
+        "E4": "guitar/E4.mp3",
+        "F2": "guitar/F2.mp3",
+        "G#5": "guitar/Gs5.mp3",
+        "G3": "guitar/G3.mp3",
+        "G4": "guitar/G4.mp3"
+      }
+    },
+    "ebass": {
+      "pitched": true,
+      "samples": {
+        "A#1": "ebass/As1.mp3",
+        "C#2": "ebass/Cs2.mp3",
+        "E1": "ebass/E1.mp3",
+        "G1": "ebass/G1.mp3"
       }
     }
   }
