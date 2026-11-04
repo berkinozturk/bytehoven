@@ -50,6 +50,7 @@ async function main() {
   const body = JSON.stringify({
     event: 'PermissionRequest',
     session: hook.session_id,
+    folder: typeof hook.cwd === 'string' ? path.basename(hook.cwd) : undefined,
     agent: hook.agent_id,
     tool: hook.tool_name,
     target: targetOf(input),

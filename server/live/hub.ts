@@ -22,6 +22,8 @@ export type PageMsg =
 export interface Permission {
   id: number;
   session: string;
+  /** The session's project folder name, so a session not seen yet can take a chair. */
+  folder?: string;
   agent?: string;
   tool: string;
   target?: string;
@@ -109,7 +111,7 @@ export class LiveHub {
     if (b.event !== 'PermissionRequest' || !session || !tool) return json(res, { decision: null });
     // Nobody is looking at Bytehoven: let Claude Code ask as usual, right away.
     if (this.pages.size === 0) return json(res, { decision: null });
-    const permission: Permission = { id: this.nextId++, session, tool, target: short(b.target, 60), agent: short(b.agent) };
+    const permission: Permission = { id: this.nextId++, session, folder: short(b.folder, 60), tool, target: short(b.target, 60), agent: short(b.agent) };
     const timer = setTimeout(() => this.answer(w, null), this.timeoutMs);
     const w: Waiting = { permission, res, timer };
     this.waiting.set(permission.id, w);

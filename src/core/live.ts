@@ -36,6 +36,7 @@ interface Session {
 interface Permission {
   id: number;
   session: string;
+  folder?: string;
   agent?: string;
   tool: string;
   target?: string;
@@ -213,7 +214,8 @@ export class LiveSource extends Emitter<{ event: AgentEvent; status: LiveStatus 
   }
 
   private ask(p: Permission) {
-    const chair = this.seats.get(p.session);
+    // e.g. a `claude -p` run that never shows up in the session list
+    const chair = this.seats.get(p.session) ?? this.seat({ id: p.session, folder: p.folder ?? 'session', status: 'busy' }, true);
     if (!chair) return;
     const who = (p.agent && this.children.get(chair)?.get(p.agent)) || chair;
     this.waiting.set(who, p.id);

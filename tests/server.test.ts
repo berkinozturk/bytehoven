@@ -90,9 +90,10 @@ test('approving on the page answers the waiting hook', async () => {
   const s = await start();
   const page = listen(s.port, s.host);
   await page.ready;
-  const hook = request(s.port, 'POST', '/__live/hook', { host: s.host, 'x-bytehoven-token': TOKEN }, { event: 'PermissionRequest', session: 'sess-1', tool: 'Bash', target: 'git' });
+  const hook = request(s.port, 'POST', '/__live/hook', { host: s.host, 'x-bytehoven-token': TOKEN }, { event: 'PermissionRequest', session: 'sess-1', folder: 'shop', tool: 'Bash', target: 'git' });
   const ask = await page.waitFor('permission');
   assert.equal(ask.session, 'sess-1');
+  assert.equal(ask.folder, 'shop', 'so a session Bytehoven has not seen yet can still take a chair');
   assert.equal(ask.tool, 'Bash');
   const d = await request(s.port, 'POST', '/__live/decision', { host: s.host, origin: `http://${s.host}` }, { id: ask.id, approved: true });
   assert.equal(d.status, 204);
