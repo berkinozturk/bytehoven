@@ -91,6 +91,7 @@ export class Stage {
   private tapAt = -10;
   private cueAt = -10;
   private selected: string | null = null;
+  private focusId: string | null = null;
   private lastT = now();
 
   /** Provided by the app each frame. */
@@ -421,6 +422,19 @@ export class Stage {
     return { x: p.x, y: p.y };
   }
 
+  /** Put one musician in the spotlight (used by the first-run tour). */
+  focus(id: string | null) {
+    this.focusId = id;
+  }
+
+  /** Bounds of a musician, or of the conductor ('__conductor'), in canvas CSS pixels. */
+  screenRect(id: string): { x: number; y: number; w: number; h: number } | null {
+    const sprite = id === '__conductor' ? this.conductorSprite : this.views.get(id)?.sprite;
+    if (!sprite) return null;
+    const b = sprite.getBounds();
+    return { x: b.x, y: b.y, w: b.width, h: b.height };
+  }
+
   stateOf(id: string): MState | undefined {
     return this.views.get(id)?.state;
   }
@@ -578,12 +592,14 @@ export class Stage {
     this.curtainR.x = W / 2 - 6 + this.curtainOpen * (W / 2 + 10);
     this.curtainL.visible = this.curtainR.visible = this.curtainOpen < 1;
 
-    // ---- camera: lean in on a fermata
-    const target = fermataAgent ? this.views.get(fermataAgent) : null;
-    const focus = target ? Math.min(1, tension * 1.6) : 0;
-    const tx = target ? W / 2 + (target.seat.x - W / 2) * 0.35 * focus : W / 2;
-    const ty = target ? H / 2 + (target.seat.y - 40 - H / 2) * 0.3 * focus : H / 2;
-    const tz = 1 + 0.09 * focus;
+    // ---- camera: lean in on a fermata, or on the musician the tour introduces
+    const target = fermataAgent ? (this.views.get(fermataAgent) ?? null) : null;
+    const focusView = !target && this.focusId ? (this.views.get(this.focusId) ?? null) : null;
+    const spot = target ?? focusView;
+    const focus = target ? Math.min(1, tension * 1.6) : focusView ? 0.8 : 0;
+    const tx = spot ? W / 2 + (spot.seat.x - W / 2) * 0.35 * focus : W / 2;
+    const ty = spot ? H / 2 + (spot.seat.y - 40 - H / 2) * 0.3 * focus : H / 2;
+    const tz = 1 + (target ? 0.09 : 0.14) * focus;
     const kc = 1 - Math.exp(-dt * (target ? 1.2 : 2.5));
     this.cam.x += (tx - this.cam.x) * kc;
     this.cam.y += (ty - this.cam.y) * kc;
@@ -591,7 +607,8 @@ export class Stage {
     this.layout();
 
     // ---- ambient darkness
-    const targetDim = this.curtainOpen < 1 ? 0.15 : 0.22 + (target ? 0.5 * Math.min(1, tension * 2.2) : 0);
+    const targetDim =
+      this.curtainOpen < 1 ? 0.15 : 0.22 + (target ? 0.5 * Math.min(1, tension * 2.2) : focusView ? 0.38 : 0);
     this.dim += (targetDim - this.dim) * (1 - Math.exp(-dt * 3));
     this.darkness.clear().rect(-20, -20, W + 40, H + 40).fill({ color: 0x05020a, alpha: this.dim });
 
@@ -642,12 +659,13 @@ export class Stage {
       let goal = base + (sel ? 0.15 : 0);
       let width = 1;
       let tint = v.state === 'sleeping' ? 0x8aa0ff : v.state === 'error' && t - v.errorAt < 3 ? 0xff6a5a : 0xffd9a0;
-      if (target) {
-        if (target === v) {
-          goal = 0.5 + 0.35 * Math.min(1, tension * 1.4);
-          width = 1 - 0.5 * Math.min(1, tension * 1.5);
+      if (spot) {
+        const k = target ? Math.min(1, tension * 1.4) : 0.6;
+        if (spot === v) {
+          goal = 0.5 + 0.35 * k;
+          width = 1 - 0.5 * (target ? Math.min(1, tension * 1.5) : 0.3);
           tint = 0xfff1d0;
-        } else goal *= 1 - 0.85 * Math.min(1, tension * 3);
+        } else goal *= 1 - 0.85 * (target ? Math.min(1, tension * 3) : 0.85);
       }
       if (this.curtainOpen < 0.6) goal *= this.curtainOpen;
       v.light += (goal - v.light) * (1 - Math.exp(-dt * 4));
@@ -687,10 +705,10 @@ export class Stage {
     }
 
     // ---- lift the waiting musician out of the dark
-    if (target !== this.lifted) {
+    if (spot !== this.lifted) {
       if (this.lifted && this.views.has(this.lifted.info.id)) this.musicians.addChild(this.lifted.sprite);
-      if (target) this.spotLayer.addChild(target.sprite);
-      this.lifted = target ?? null;
+      if (spot) this.spotLayer.addChild(spot.sprite);
+      this.lifted = spot;
     }
 
     // ---- fermata sign

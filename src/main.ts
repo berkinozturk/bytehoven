@@ -9,6 +9,7 @@ import { Stage, type Seat } from './stage/stage';
 import { W } from './stage/hall';
 import { Score } from './ui/score';
 import { Detail, Feed, TensionMeter } from './ui/panels';
+import { Tour } from './ui/tour';
 
 /** Where everyone sits, what they look like, which colour writes their part. */
 const SEATS: Record<string, Seat> = {
@@ -167,9 +168,65 @@ async function main() {
     if (detail.current) detail.open(detailData(detail.current));
     if (permAgent) $('#perm-title').textContent = t('fermata.waiting', { name: agents.get(permAgent)!.name });
     paintBegin();
+    tour.refresh();
   });
   paintLang();
   document.documentElement.lang = getLang();
+
+  // ---- the first-run tour
+  // Each musician steps into the spotlight and plays a phrase in their own voice.
+  const PHRASES: Record<string, Array<[AgentEvent['kind'], string, string, number]>> = {
+    ines: [['tool_start', 'WebSearch', 'web audio', 0], ['tool_start', 'WebFetch', 'docs', 1300]],
+    mira: [['file_read', 'Read', 'README.md', 0], ['file_read', 'Read', 'docs/setup.md', 700], ['file_write', 'Write', 'README.md', 1500]],
+    clara: [['file_write', 'Edit', 'Stage.ts', 0], ['file_write', 'Edit', 'router.ts', 1300]],
+    bruno: [['bash', 'Bash', 'npm run build', 0], ['bash', 'Bash', 'tsc --noEmit', 1300]],
+    otto: [['test_pass', 'Bash', 'npm test', 0]],
+  };
+  let phraseTimers: number[] = [];
+  const tour = new Tour({
+    focus: (id) => stage.focus(id),
+    stageRect: (id) => stage.screenRect(id),
+    stageEl: $('#stage'),
+    play: (id) => {
+      for (const tm of phraseTimers) clearTimeout(tm);
+      phraseTimers = (PHRASES[id] ?? []).map(([kind, tool, target, at]) =>
+        window.setTimeout(() => {
+          const ev = makeEvent(id, kind, { tool, target });
+          engine.handle(ev);
+          stage.onAgentEvent(ev);
+        }, at + 250),
+      );
+    },
+  });
+  const TOURED = 'bytehoven.toured';
+  const toured = () => {
+    try {
+      return localStorage.getItem(TOURED) === '1';
+    } catch {
+      return false;
+    }
+  };
+  const markToured = () => {
+    try {
+      localStorage.setItem(TOURED, '1');
+    } catch {
+      /* private mode */
+    }
+  };
+  const tourBtn = $<HTMLButtonElement>('#tour-btn');
+  const runTour = () => {
+    if (tour.isOpen || permAgent) return;
+    detail.close();
+    stage.select(null);
+    const wasRunning = sim.isRunning;
+    sim.setPaused(true);
+    tour.start(() => {
+      markToured();
+      sim.setPaused(false);
+      if (!wasRunning) sim.start();
+    });
+  };
+  tourBtn.onclick = runTour;
 
   // ---- per-frame UI
   const tick = () => {
@@ -200,6 +257,7 @@ async function main() {
     progress = p;
     begin.style.setProperty('--p', `${p * 100}%`);
     paintBegin();
+    tour.refresh();
   });
   paintBegin();
   await engine.load();
@@ -212,7 +270,14 @@ async function main() {
     $('#start').classList.add('gone');
     stage.openCurtains(3.6);
     const untilDownbeat = await engine.startConcert();
-    setTimeout(() => sim.start(), untilDownbeat * 1000 + 600);
+    setTimeout(
+      () => {
+        tourBtn.disabled = false;
+        if (toured()) sim.start();
+        else runTour();
+      },
+      untilDownbeat * 1000 + (toured() ? 600 : 1400),
+    );
   };
   // expose for debugging in the console
   Object.assign(window, { bytehoven: { engine, stage, sim, Tone } });

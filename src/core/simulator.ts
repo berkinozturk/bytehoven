@@ -107,6 +107,7 @@ export class DemoSimulator extends Emitter<{ event: AgentEvent }> {
   private timers: number[] = [];
   private waitingFor: string | null = null;
   private running = false;
+  private paused = false;
 
   constructor(readonly agents: AgentInfo[] = DEMO_AGENTS) {
     super();
@@ -146,9 +147,25 @@ export class DemoSimulator extends Emitter<{ event: AgentEvent }> {
     this.afterResolve();
   }
 
+  /**
+   * Pause the agents (e.g. while the tour is showing). Scripted moments that
+   * fall into the pause are dropped, except a permission request, which waits.
+   */
+  setPaused(p: boolean): void {
+    this.paused = p;
+  }
+
+  get isRunning(): boolean {
+    return this.running;
+  }
+
   /** Ask the user for permission on behalf of an agent (used by the script and for debugging). */
   requestPermission(agentId: string, tool = 'Bash', target = 'npm install'): void {
     if (this.waitingFor) return;
+    if (this.paused) {
+      this.at(2000, () => this.requestPermission(agentId, tool, target));
+      return;
+    }
     this.setActive(agentId, false);
     this.waitingFor = agentId;
     for (const rt of this.runtimes.values()) if (rt.info.id !== agentId) rt.activity = 0.3;
@@ -168,6 +185,7 @@ export class DemoSimulator extends Emitter<{ event: AgentEvent }> {
 
   private send(agentId: string, kind: AgentEventKind, extra: Partial<AgentEvent> = {}) {
     if (!this.running) return;
+    if (this.paused && kind !== 'permission_resolved' && kind !== 'subagent_leave') return;
     // a musician with a raised hand plays nothing until the conductor answers
     if (this.waitingFor === agentId && kind !== 'permission_request' && kind !== 'permission_resolved') return;
     this.emit('event', makeEvent(agentId, kind, extra));

@@ -92,5 +92,57 @@
   "ago": {
     "now": "now",
     "s": "{n}s"
+  },
+  "tour": {
+    "start": "Show me around",
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip tour",
+    "done": "Let the music play",
+    "replay": "Replay the tour",
+    "welcome": {
+      "title": "Welcome to the concert",
+      "body": "Every AI coding agent is a musician on this stage. Whatever it does becomes music, so you can follow your agents just by listening."
+    },
+    "ines": {
+      "title": "Ines · violin",
+      "body": "Ines does research: web searches and docs. Each tool call is a short motif. If she calls in a helper, a second violin walks on stage."
+    },
+    "mira": {
+      "title": "Mira · flute",
+      "body": "Mira writes the documentation. When an agent reads a file, its musician turns a page on the stand and plays a soft note."
+    },
+    "clara": {
+      "title": "Clara · piano",
+      "body": "Clara writes code. Every file she edits lands as a chord. Between steps she thinks, and a thinking musician quietly tunes up."
+    },
+    "bruno": {
+      "title": "Bruno · double bass",
+      "body": "Bruno refactors. Shell commands sound like a rhythmic pulse. When an agent goes idle, its musician dozes off. Zzz."
+    },
+    "otto": {
+      "title": "Otto · timpani",
+      "body": "Otto runs the tests. Green tests end in a cadence like this one. A failure is a sour chord and red sparks."
+    },
+    "conductor": {
+      "title": "You are the conductor",
+      "body": "Click any musician to see what they're doing, change their volume or hand them a new part. The baton points at whoever you pick."
+    },
+    "score": {
+      "title": "The live score",
+      "body": "Everything you hear is written down here, one line per musician. A long golden note means someone is waiting for you."
+    },
+    "fermata": {
+      "title": "The fermata",
+      "body": "When an agent needs your permission, its musician raises a hand and the music holds one chord. The tension keeps rising until you answer: Enter approves, Esc denies."
+    },
+    "feed": {
+      "title": "The programme",
+      "body": "The same story in words: which tool, which file. Never your prompts, never your code."
+    },
+    "end": {
+      "title": "Enjoy the concert",
+      "body": "Turn the sound up a little and let your agents play. You can replay this tour any time from the top bar."
+    }
   }
 }

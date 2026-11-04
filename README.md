@@ -82,6 +82,8 @@ npm run dev
 
 Open **http://127.0.0.1:5180** and press **Begin the concert** (browsers only allow sound after a click). The server only listens on `127.0.0.1`.
 
+On your first visit, a short **guided tour** introduces the orchestra. Each musician steps into the spotlight and plays a phrase in their own voice, then the tour shows you the conductor, the live score, the fermata and the programme. Use Enter / → to continue, ← to go back and Esc to skip. You can replay it any time with the **?** button in the top bar.
+
 **Things to try**
 
 - Click a musician to see their session, recent tool calls and volume, and to hand them a new part. The conductor points the baton at them.
@@ -140,7 +142,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
 ## 🗺 Roadmap
 
 - [x] **Demo mode**: Orchestra theme, five musicians, fermata, sub-agents, errors, live score
-- [ ] **First-run tour**: a short guided introduction to the musicians, the conductor, the fermata and the live score
+- [x] **First-run tour**: each musician steps into the spotlight and plays, then the conductor, live score, fermata and programme are introduced
 - [ ] **Inside Claude Code**: a compact panel that lives next to your Claude Code session, plus an always-on-top mini window
 - [ ] **Live mode**: read `~/.claude/projects/**/*.jsonl` (read-only), with optional Claude Code hooks for instant permission events
 - [ ] **Conducting**: hand a musician a new part (`claude -p`, prompt via stdin, narrow tool permissions, `rm` / `git push` / `curl` blocked by default)

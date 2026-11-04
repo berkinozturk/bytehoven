@@ -92,5 +92,57 @@
   "ago": {
     "now": "şimdi",
     "s": "{n} sn"
+  },
+  "tour": {
+    "start": "Bana gezdir",
+    "next": "İleri",
+    "back": "Geri",
+    "skip": "Turu atla",
+    "done": "Müzik başlasın",
+    "replay": "Turu yeniden izle",
+    "welcome": {
+      "title": "Konsere hoş geldin",
+      "body": "Her yapay zekâ kodlama ajanı bu sahnede bir müzisyen. Yaptığı her şey müziğe dönüşüyor; ajanlarını sadece dinleyerek takip edebilirsin."
+    },
+    "ines": {
+      "title": "Ines · keman",
+      "body": "Ines araştırma yapıyor: web aramaları ve dokümanlar. Her araç çağrısı kısa bir motif. Yardımcı çağırırsa sahneye ikinci bir keman yürür."
+    },
+    "mira": {
+      "title": "Mira · flüt",
+      "body": "Mira dokümantasyonu yazıyor. Bir ajan dosya okuduğunda müzisyeni nota sehpasında sayfa çevirir ve yumuşak bir nota çalar."
+    },
+    "clara": {
+      "title": "Clara · piyano",
+      "body": "Clara kod yazıyor. Düzenlediği her dosya bir akor olarak duyulur. Adımlar arasında düşünür; düşünen müzisyen sessizce akort eder."
+    },
+    "bruno": {
+      "title": "Bruno · kontrbas",
+      "body": "Bruno refactor yapıyor. Terminal komutları ritmik bir vuruş gibi duyulur. Boşta kalan ajanın müzisyeni uyuklar. Zzz."
+    },
+    "otto": {
+      "title": "Otto · timpani",
+      "body": "Otto testleri çalıştırıyor. Geçen testler böyle bir kadansla biter. Başarısız test ise uyumsuz bir akor ve kırmızı kıvılcımlar demek."
+    },
+    "conductor": {
+      "title": "Şef sensin",
+      "body": "Bir müzisyene tıklayıp ne yaptığını görebilir, sesini ayarlayabilir ya da ona yeni bir partisyon verebilirsin. Baton seçtiğin müzisyeni gösterir."
+    },
+    "score": {
+      "title": "Canlı partisyon",
+      "body": "Duyduğun her şey burada yazıya dökülür; her müzisyene bir satır. Uzun altın bir nota, birinin seni beklediği anlamına gelir."
+    },
+    "fermata": {
+      "title": "Fermata",
+      "body": "Bir ajan iznine ihtiyaç duyduğunda müzisyeni elini kaldırır ve müzik tek bir akorda bekler. Sen cevap verene kadar gerilim artar: Enter onaylar, Esc reddeder."
+    },
+    "feed": {
+      "title": "Program",
+      "body": "Aynı hikâye kelimelerle: hangi araç, hangi dosya. Prompt'ların ve kodun asla burada görünmez."
+    },
+    "end": {
+      "title": "Konserin tadını çıkar",
+      "body": "Sesi biraz aç ve ajanlarını çalmaya bırak. Bu turu üst çubuktan istediğin zaman yeniden izleyebilirsin."
+    }
   }
 }
