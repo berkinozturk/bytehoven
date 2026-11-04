@@ -8,7 +8,7 @@ Every agent is a musician on a pixel-art concert stage.<br/>
 Every tool call becomes music. **Hear** what your agents are doing without looking.<br/>
 And when one of them needs you, the whole hall holds its breath.
 
-![Bytehoven: five agents playing on stage](docs/media/stage.png)
+![Bytehoven: the orchestra playing while agents work, and a second violinist walking on stage as a sub-agent joins](docs/media/orchestra.gif)
 
 [Run it](#-run-it) · [What you hear](#-what-you-hear) · [The fermata](#-the-fermata) · [How it's built](#-how-its-built) · [Roadmap](#-roadmap)
 
@@ -31,6 +31,8 @@ Agent dashboards make you *watch*. Sound notification tools make you *flinch* at
 - **Zero tokens.** Bytehoven never calls a model. It only listens.
 
 ## 🎻 What you hear
+
+![Five agents on stage: violin, flute, piano, double bass and timpani](docs/media/stage.png)
 
 | When an agent… | the musician… | and you hear… |
 | --- | --- | --- |
