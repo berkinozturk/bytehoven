@@ -70,7 +70,7 @@ export class Feed {
     const now = performance.now();
     this.el.querySelectorAll<HTMLElement>('.when').forEach((el) => {
       const s = Math.round((now - Number(el.dataset.at)) / 1000);
-      el.textContent = s < 2 ? t('ago.now') : t('ago.s', { n: s });
+      el.textContent = s < 2 ? t('ago.now') : s < 60 ? t('ago.s', { n: s }) : t('ago.m', { n: Math.floor(s / 60) });
     });
   }
 }

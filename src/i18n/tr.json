@@ -101,7 +101,8 @@
   },
   "ago": {
     "now": "şimdi",
-    "s": "{n} sn"
+    "s": "{n} sn",
+    "m": "{n} dk"
   },
   "tour": {
     "start": "Bana gezdir",

@@ -101,7 +101,8 @@
   },
   "ago": {
     "now": "now",
-    "s": "{n}s"
+    "s": "{n}s",
+    "m": "{n}m"
   },
   "tour": {
     "start": "Show me around",

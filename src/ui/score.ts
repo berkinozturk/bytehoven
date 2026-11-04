@@ -25,6 +25,7 @@ interface Mark {
   vel: number;
   dur: number;
   end?: number; // for fermatas: when they resolved
+  past?: boolean; // from before the page opened
 }
 
 const RANGES: Record<AgentInfo['instrument'], [number, number]> = {
@@ -85,6 +86,27 @@ export class Score {
   bar() {
     this.bars.push(performance.now() / 1000);
     if (this.bars.length > 40) this.bars.shift();
+  }
+
+  /**
+   * Events from before the page opened, squeezed into the visible strip behind the
+   * playhead (oldest on the left) and drawn faded, so the score never starts empty.
+   */
+  history(events: Array<{ agentId: string; kind: string }>) {
+    if (!events.length) return;
+    const now = performance.now() / 1000;
+    const span = Math.max(1, ((this.w - 46 - 132) / this.pxPerSec) * 0.8);
+    const step = Math.min(0.35, span / events.length);
+    events.forEach((ev, i) => {
+      const row = this.rows.find((r) => r.info.id === ev.agentId);
+      if (!row) return;
+      const [lo, hi] = row.range;
+      const mid = Math.round((lo + hi) / 2) + ((i * 5) % 9) - 4;
+      // failures stay red; everything else is a faded hollow note head
+      const bad = ev.kind === 'test_fail' || ev.kind === 'error';
+      const kind: NoteInfo['kind'] = bad ? 'test_fail' : 'file_read';
+      this.marks.push({ agentId: ev.agentId, t: now - 0.4 - (events.length - i) * step, kind, midis: bad ? [mid, mid + 1] : [mid], vel: 0.4, dur: 0, past: true });
+    });
   }
 
   note(n: NoteInfo) {
@@ -188,8 +210,8 @@ export class Score {
         return r.y + r.h * (0.82 - k * 0.64);
       };
       const age = now - m.t;
-      const fresh = Math.max(0, 1 - age * 2.2);
-      ctx.globalAlpha = Math.min(1, r.h / rowH);
+      const fresh = m.past ? 0 : Math.max(0, 1 - age * 2.2);
+      ctx.globalAlpha = Math.min(1, r.h / rowH) * (m.past ? 0.6 : 1);
 
       if (m.kind === 'permission_request') {
         const endX = m.end ? playX - (now - m.end) * this.pxPerSec : playX;
