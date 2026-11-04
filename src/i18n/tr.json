@@ -18,7 +18,9 @@
     "mute": "Sessize al",
     "unmute": "Sesi aç",
     "language": "Dil",
-    "popout": "Mini pencerede aç (hep üstte)"
+    "popout": "Mini pencerede aç (hep üstte)",
+    "record": "Günün senfonisini kaydet (sahne ve ses, en fazla bir dakika)",
+    "recordStop": "Durdur ve videoyu kaydet"
   },
   "side": {
     "tension": "Gerilim",

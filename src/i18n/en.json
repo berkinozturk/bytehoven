@@ -18,7 +18,9 @@
     "mute": "Mute",
     "unmute": "Unmute",
     "language": "Language",
-    "popout": "Pop out: an always-on-top mini window"
+    "popout": "Pop out: an always-on-top mini window",
+    "record": "Record today’s symphony (stage and sound, up to a minute)",
+    "recordStop": "Stop and save the video"
   },
   "side": {
     "tension": "Tension",
