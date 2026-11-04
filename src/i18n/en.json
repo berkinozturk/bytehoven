@@ -322,5 +322,28 @@
         }
       }
     }
+  },
+  "mixer": {
+    "title": "Mixer",
+    "sub": "Who plays which kind of work, and which events make a sound. Saved in this browser.",
+    "cast": "Who plays what",
+    "reloadNote": "A new cast takes its seats when the page reloads.",
+    "apply": "Apply and reload",
+    "events": "Which events sound",
+    "note": "Switched-off events still show on stage and in the programme. The fermata always sounds. The tour introduces the usual cast.",
+    "reset": "Back to the usual mix",
+    "ev": {
+      "file_read": "Reading a file",
+      "file_write": "Writing a file",
+      "tool_start": "Other tools (search, web …)",
+      "bash": "Shell commands",
+      "thinking": "Thinking",
+      "test_pass": "Tests passing",
+      "test_fail": "Tests failing",
+      "error": "Errors",
+      "subagent_join": "A sub-agent arriving",
+      "subagent_leave": "A sub-agent leaving",
+      "task_done": "A finished turn"
+    }
   }
 }

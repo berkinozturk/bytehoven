@@ -161,6 +161,15 @@ Bytehoven fits a narrow side panel: below 720px wide it switches to a compact la
 
 The pop-out uses the browser's [Document Picture-in-Picture](https://developer.chrome.com/docs/web-platform/document-picture-in-picture) API (Chrome / Edge 116+). The button is hidden in browsers that can't open one. Sound keeps playing from the original tab.
 
+### The mixer
+
+The sliders button in the top bar opens the mixer:
+
+- **Who plays what.** Give any kind of work to any musician (say, code to the violin). The two musicians swap roles, in the demo and in live mode, after a reload.
+- **Which events sound.** Switch off what you don't want to hear, such as thinking or file reads. Those events still show on stage and in the programme. The fermata always sounds.
+
+The mix is saved in your browser only.
+
 ## 🛠 How it's built
 
 | | |
@@ -224,7 +233,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
   - [x] Jazz club 🎷
   - [x] Chiptune arcade 👾 (synthesised, no samples)
   - [x] Lo-fi rainy room 🌧
-- [ ] **Mixer**: which event plays which sound, instrument assignment per role
+- [x] **Mixer**: who plays which kind of work, which events make a sound
 - [ ] **"Today's symphony"**: export a session as a short video/GIF with sound, ready to share
 - [ ] Codex and Gemini CLI support
 
