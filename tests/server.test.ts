@@ -157,3 +157,17 @@ test('a page that opens late gets the last 20 events with their time, newest las
     await s.close();
   }
 });
+
+test("the box office endpoint answers the page with today's takings, and no other site", async () => {
+  const s = await start();
+  try {
+    s.hub.takings = () => ({ date: '2026-11-04', messages: 1, total: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4 }, chairs: {} });
+    const ok = await request(s.port, 'GET', '/__live/box-office', { host: s.host });
+    assert.equal(ok.status, 200);
+    assert.equal(JSON.parse(ok.body).total.cacheRead, 3);
+    const other = await request(s.port, 'GET', '/__live/box-office', { host: s.host, origin: 'https://evil.example' });
+    assert.equal(other.status, 403);
+  } finally {
+    await s.close();
+  }
+});

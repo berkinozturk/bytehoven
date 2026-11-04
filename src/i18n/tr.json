@@ -347,5 +347,17 @@
       "subagent_leave": "Alt ajanın gidişi",
       "task_done": "Biten bir tur"
     }
+  },
+  "box": {
+    "title": "Gişe",
+    "sub": "Bugün müzisyen başına token · {date}",
+    "output": "Yazılan",
+    "input": "Yeni okunan",
+    "cacheRead": "Önbellekten",
+    "total": "Toplam",
+    "loading": "Sayılıyor…",
+    "unavailable": "Canlı sunucu çalışmıyor, sayılacak bir şey yok.",
+    "empty": "Bugün henüz iş yok.",
+    "note": "{n} mesaj, her biri bir kez sayıldı. “Önbellekten” yeniden okunan bağlamdır, yeni iş değil; bu yüzden ayrı tutulur. Yalnızca token sayıları okunur, mesajlar asla."
   }
 }
