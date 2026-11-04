@@ -10,7 +10,7 @@ And when one of them needs you, the whole hall holds its breath.
 
 ![Bytehoven: the orchestra playing while agents work, and a second violinist walking on stage as a sub-agent joins](docs/media/orchestra.gif)
 
-[Run it](#-run-it) · [What you hear](#-what-you-hear) · [The fermata](#-the-fermata) · [How it's built](#-how-its-built) · [Roadmap](#-roadmap)
+[▶ Live demo](https://berkinozturk.github.io/bytehoven/) · [Run it](#-run-it) · [What you hear](#-what-you-hear) · [The fermata](#-the-fermata) · [How it's built](#-how-its-built) · [Roadmap](#-roadmap)
 
 **English** · Türkçe arayüz dahil
 
@@ -89,16 +89,40 @@ Tension builds gradually instead of beeping at you. That's the point: you'll fee
 
 ## 🚀 Run it
 
-Requires Node 20+.
+**Just look first:** the [live demo](https://berkinozturk.github.io/bytehoven/) runs in your browser. It plays five simulated agents; there's nothing to install.
+
+**On your machine** (Node 20.11+), one command:
+
+```bash
+npx bytehoven
+```
+
+It starts Bytehoven on **http://127.0.0.1:5180** and opens it in your browser. Press **Begin the concert**; browsers only allow sound after a click.
+- The server only listens on `127.0.0.1`.
+- The package has no dependencies: it is the built page plus a small local server.
+- `--port 5190` picks another port, and `--no-open` skips opening the browser.
+- Press **Live** to hear your own Claude Code, Codex and Gemini CLI sessions.
+
+For the fermata's Approve button, add the hook once:
+
+```bash
+npx bytehoven hooks --write
+```
+
+It copies the hook to `~/.bytehoven/hook.mjs`, so it keeps working after npx clears its cache, and adds it to `~/.claude/settings.json` after saving a backup. `npx bytehoven hooks` shows the change without making it, and `--remove` takes it out again.
+
+<details>
+<summary><b>From source</b></summary>
 
 ```bash
 git clone https://github.com/berkinozturk/bytehoven.git
 cd bytehoven
 npm install
-npm run dev
+npm run dev          # http://127.0.0.1:5180, with hot reload
+npm run hooks -- --write
 ```
 
-Open **http://127.0.0.1:5180** and press **Begin the concert** (browsers only allow sound after a click). The server only listens on `127.0.0.1`.
+</details>
 
 On your first visit, a short **guided tour** introduces the orchestra. Each musician steps into the spotlight and plays a phrase in their own voice. A **signal lesson** lets you play every sound on its own (reading, writing, a command, thinking, a failure, passing tests, a sub-agent joining, a finished part, the fermata) and tells you what it means, so you can follow your agents by ear. Then the tour shows you the conductor, the live score, the fermata and the programme. Use Enter / → to continue, ← to go back and Esc to skip. You can replay it any time with the **?** button in the top bar.
 
@@ -137,9 +161,9 @@ They are read the same way as Claude Code's, read-only and metadata only. The fe
 **The fermata, with a real Approve button.** To hear the hall hold its breath when a session needs your permission, add Bytehoven's hook to Claude Code:
 
 ```bash
-npm run hooks              # shows what would be added, changes nothing
-npm run hooks -- --write   # adds it to ~/.claude/settings.json (backs the file up first)
-npm run hooks -- --remove  # takes it out again
+npx bytehoven hooks              # shows what would be added, changes nothing
+npx bytehoven hooks --write      # adds it to ~/.claude/settings.json (backs the file up first)
+npx bytehoven hooks --remove     # takes it out again
 ```
 
 Then start a new Claude Code session. When it asks for permission, the musician for that kind of work raises a hand (the card shows which project is asking), and **Approve** / **Deny** in Bytehoven answer Claude Code directly. Each answer covers that one request only; there is no "always allow". If Bytehoven isn't open, or you don't answer within about 50 seconds, Claude Code asks you as usual.
@@ -206,8 +230,9 @@ src/
   stage/     pixel toolkit, hall, jazz club, lo-fi room, arcade, musicians, lights, particles, camera
   ui/        live score strip, programme feed, tension meter, detail drawer
   i18n/      en · tr
-server/live/  read-only session reader, transcript parser, local endpoints
-bin/          the Claude Code permission hook and its installer
+server/live/  read-only session readers (Claude Code, Codex, Gemini), parsers, local endpoints
+server/       serve.ts: the local server behind `npx bytehoven`
+bin/          the `bytehoven` command, the permission hook and its installer
 tests/        node --test suites (parser privacy, reader, endpoints)
 scripts/
   prepare-samples.mjs   raw VSCO WAVs → trimmed, pitch-verified MP3s
@@ -236,7 +261,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
 - **Local only.** The dev server binds to `127.0.0.1`.
 - **Metadata only.** Live mode reads Claude Code's local session list and transcripts **read-only** (`~/.claude/sessions`, `~/.claude/projects`), and the same way Codex CLI's and Gemini CLI's (`~/.codex/sessions`, `~/.gemini/tmp`). Each line is parsed in memory and only the tool name, a file's base name, a command's first word (`git`, `npm test`) and whether it failed are kept. Prompts, messages, thinking, file contents, full paths and full commands are dropped on the spot, never stored and never sent anywhere. A test (`tests/parse.test.ts`) checks that none of them can leak.
 - **The box office** also reads each reply's message id, time and four token counts (input, output, cache read, cache write). Nothing else; `tests/boxoffice.test.ts` checks it.
-- **The permission hook** sends only the session id, the tool name and the same short target to `127.0.0.1`. The local endpoints check the `Host` header (no DNS rebinding), only accept Approve / Deny from Bytehoven's own page, and only accept the hook's call with a random token stored in `.bytehoven/live.json`, readable only by you.
+- **The permission hook** (`~/.bytehoven/hook.mjs`) sends only the session id, the tool name and the same short target to `127.0.0.1`. The local endpoints check the `Host` header (no DNS rebinding), only accept Approve / Deny from Bytehoven's own page, and only accept the hook's call with a random token stored in `~/.bytehoven/live.json`, readable only by you.
 - **Format caveat.** These transcript formats are internal and can change between versions; if a release changes it, live mode may go quiet until Bytehoven catches up.
 
 ## 🗺 Roadmap
