@@ -10,6 +10,7 @@ import { W } from './stage/hall';
 import { Score } from './ui/score';
 import { Detail, Feed, TensionMeter } from './ui/panels';
 import { Tour } from './ui/tour';
+import { canPopOut, popOut } from './ui/pip';
 
 /** Where everyone sits, what they look like, which colour writes their part. */
 const SEATS: Record<string, Seat> = {
@@ -22,7 +23,9 @@ const SEATS: Record<string, Seat> = {
 };
 
 const pan = (x: number) => Math.max(-0.85, Math.min(0.85, ((x - W / 2) / (W / 2)) * 0.95));
-const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+// Query inside #app rather than `document`: the app can move into a pop-out window.
+const appRoot = document.getElementById('app')!;
+const $ = <T extends HTMLElement>(sel: string) => appRoot.querySelector<T>(sel)!;
 
 async function main() {
   applyStatic();
@@ -159,10 +162,11 @@ async function main() {
     mute.title = t(m ? 'top.unmute' : 'top.mute');
     engine.setMuted(m);
   };
-  const paintLang = () => document.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => b.classList.toggle('on', b.dataset.lang === getLang()));
-  document.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => (b.onclick = () => setLang(b.dataset.lang as Lang)));
+  const paintLang = () => appRoot.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => b.classList.toggle('on', b.dataset.lang === getLang()));
+  appRoot.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => (b.onclick = () => setLang(b.dataset.lang as Lang)));
   onLang(() => {
     applyStatic();
+    if (appRoot.ownerDocument !== document) applyStatic(appRoot.ownerDocument);
     paintLang();
     feed.rerender();
     if (detail.current) detail.open(detailData(detail.current));
@@ -215,7 +219,7 @@ async function main() {
   };
   const tourBtn = $<HTMLButtonElement>('#tour-btn');
   const runTour = () => {
-    if (tour.isOpen || permAgent) return;
+    if (tour.isOpen || permAgent || pipWin) return;
     detail.close();
     stage.select(null);
     const wasRunning = sim.isRunning;
@@ -228,6 +232,41 @@ async function main() {
   };
   tourBtn.onclick = runTour;
 
+  // ---- pop-out: an always-on-top mini window (Document Picture-in-Picture)
+  let pipWin: Window | null = null;
+  const popBtn = $<HTMLButtonElement>('#popout');
+  popBtn.hidden = !canPopOut();
+  popBtn.onclick = async () => {
+    if (pipWin) return pipWin.close();
+    if (tour.isOpen) return;
+    const ok = await popOut(appRoot, {
+      opened: (win) => {
+        pipWin = win;
+        stage.listenOn(win);
+        popBtn.hidden = true;
+        tourBtn.disabled = true;
+      },
+      closed: () => {
+        pipWin = null;
+        popBtn.hidden = false;
+        tourBtn.disabled = !$('#start').classList.contains('gone');
+      },
+      placeholder: () => {
+        const el = document.createElement('div');
+        el.className = 'pip-away';
+        const p = document.createElement('p');
+        p.textContent = t('pip.away');
+        const back = document.createElement('button');
+        back.className = 'btn gold';
+        back.textContent = t('pip.back');
+        back.onclick = () => pipWin?.close();
+        el.append(p, back);
+        return el;
+      },
+    });
+    if (!ok) popBtn.hidden = true; // the browser can't open the window after all
+  };
+
   // ---- per-frame UI
   const tick = () => {
     const v = engine.tension;
@@ -235,7 +274,10 @@ async function main() {
     perm.style.setProperty('--t', String(v));
     if (permAgent && !perm.hidden) {
       const p = stage.screenPos(permAgent);
-      if (p) {
+      // narrow panels: dock the card at the bottom of the stage instead
+      const docked = perm.parentElement!.clientWidth < 600;
+      perm.classList.toggle('docked', docked);
+      if (p && !docked) {
         // sit beside the musician so the raised hand and the fermata sign stay visible
         const right = p.x < perm.parentElement!.clientWidth * 0.62;
         perm.classList.toggle('to-left', !right);
@@ -273,7 +315,7 @@ async function main() {
     setTimeout(
       () => {
         tourBtn.disabled = false;
-        if (toured()) sim.start();
+        if (toured() || pipWin) sim.start(); // no tour inside the mini window
         else runTour();
       },
       untilDownbeat * 1000 + (toured() ? 600 : 1400),

@@ -14,7 +14,8 @@
     "volume": "Ana ses",
     "mute": "Sessize al",
     "unmute": "Sesi aç",
-    "language": "Dil"
+    "language": "Dil",
+    "popout": "Mini pencerede aç (hep üstte)"
   },
   "side": {
     "tension": "Gerilim",
@@ -144,5 +145,9 @@
       "title": "Konserin tadını çıkar",
       "body": "Sesi biraz aç ve ajanlarını çalmaya bırak. Bu turu üst çubuktan istediğin zaman yeniden izleyebilirsin."
     }
+  },
+  "pip": {
+    "away": "Konser mini pencerede çalıyor.",
+    "back": "Geri getir"
   }
 }
