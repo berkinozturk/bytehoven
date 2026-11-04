@@ -1,0 +1,10 @@
+{
+  "name": "bytehoven",
+  "version": "0.1.0",
+  "description": "Your coding sessions as a pixel-art orchestra. /bytehoven:open starts it; while it's open, permission prompts become a fermata you answer with Approve / Deny.",
+  "author": { "name": "Berkin Öztürk", "url": "https://github.com/berkinozturk" },
+  "homepage": "https://berkinozturk.github.io/bytehoven/",
+  "repository": "https://github.com/berkinozturk/bytehoven",
+  "license": "MIT",
+  "keywords": ["sonification", "music", "permissions", "visualizer"]
+}

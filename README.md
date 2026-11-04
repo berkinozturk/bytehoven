@@ -111,6 +111,15 @@ npx bytehoven hooks --write
 
 It copies the hook to `~/.bytehoven/hook.mjs`, so it keeps working after npx clears its cache, and adds it to `~/.claude/settings.json` after saving a backup. `npx bytehoven hooks` shows the change without making it, and `--remove` takes it out again.
 
+**As a Claude Code plugin.** Inside Claude Code:
+
+```text
+/plugin marketplace add berkinozturk/bytehoven
+/plugin install bytehoven@bytehoven
+```
+
+The plugin adds the fermata's permission hook for you, so you don't need `hooks --write`. Run `/bytehoven:open` to start Bytehoven from any session. If you also installed the hook with npx, that's fine: a request that arrives twice still plays as one fermata.
+
 <details>
 <summary><b>From source</b></summary>
 
@@ -156,7 +165,7 @@ All your running sessions play the same orchestra; every line in the programme s
 - Codex: `~/.codex/sessions/…/rollout-*.jsonl`, or `$CODEX_HOME`.
 - Gemini: `~/.gemini/tmp/<project>/chats/session-*.jsonl`.
 
-They are read the same way as Claude Code's, read-only and metadata only. The fermata hook and the box office are Claude Code only for now.
+They are read the same way as Claude Code's, read-only and metadata only. The fermata works for Codex too (`npx bytehoven hooks --codex --write`; Codex asks you to trust a new hook once). Gemini CLI has no permission hook, and the box office counts Claude Code only.
 
 **The fermata, with a real Approve button.** To hear the hall hold its breath when a session needs your permission, add Bytehoven's hook to Claude Code:
 
@@ -164,6 +173,7 @@ They are read the same way as Claude Code's, read-only and metadata only. The fe
 npx bytehoven hooks              # shows what would be added, changes nothing
 npx bytehoven hooks --write      # adds it to ~/.claude/settings.json (backs the file up first)
 npx bytehoven hooks --remove     # takes it out again
+npx bytehoven hooks --codex --write   # the same for OpenAI Codex CLI (~/.codex/hooks.json)
 ```
 
 Then start a new Claude Code session. When it asks for permission, the musician for that kind of work raises a hand (the card shows which project is asking), and **Approve** / **Deny** in Bytehoven answer Claude Code directly. Each answer covers that one request only; there is no "always allow". If Bytehoven isn't open, or you don't answer within about 50 seconds, Claude Code asks you as usual.
@@ -287,7 +297,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
 - [x] **Mixer**: who plays which kind of work, which events make a sound
 - [x] **"Today's symphony"**: record the stage and its sound as a short video, ready to share
 - [x] Codex and Gemini CLI sessions in live mode (read-only)
-  - [ ] the fermata for Codex too (it has a Claude-style PermissionRequest hook); Gemini has only a BeforeTool hook
+  - [x] the fermata for Codex too (its PermissionRequest hook); Gemini CLI has only a BeforeTool hook, so not there
 
 ## 🤝 Contributing
 
