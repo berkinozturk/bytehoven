@@ -43,6 +43,11 @@ body {
   overflow: hidden;
 }
 
+/* `hidden` must win over component display rules (e.g. .icon-btn is a grid) */
+[hidden] {
+  display: none !important;
+}
+
 button {
   font: inherit;
   color: inherit;
