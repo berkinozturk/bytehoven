@@ -112,9 +112,26 @@ export class AudioEngine extends Emitter<{ note: NoteInfo; progress: number; bar
   // ------------------------------------------------------------------ loading
 
   async load(baseUrl = './samples/'): Promise<void> {
-    const manifest: Manifest = await (await fetch(baseUrl + 'manifest.json')).json();
     const jobs: Array<() => Promise<void>> = [];
     const wanted = new Set(this.theme.groups);
+    // groups the theme makes in code (the chiptune channels)
+    const rate = Tone.getContext().sampleRate;
+    for (const [group, make] of Object.entries(this.theme.synth ?? {})) {
+      wanted.delete(group);
+      const made = make(rate);
+      const map = new Map<number, Tone.ToneAudioBuffer>();
+      this.buffers.set(group, map);
+      if (made instanceof Map) for (const [midi, x] of made) map.set(midi, Tone.ToneAudioBuffer.fromArray(x));
+      else {
+        const names = new Map<string, number>();
+        this.hitKeys.set(group, names);
+        Object.entries(made).forEach(([name, x], i) => {
+          names.set(name, 60 + i);
+          map.set(60 + i, Tone.ToneAudioBuffer.fromArray(x));
+        });
+      }
+    }
+    const manifest: Manifest = wanted.size ? await (await fetch(baseUrl + 'manifest.json')).json() : { groups: {} };
     for (const [group, g] of Object.entries(manifest.groups)) {
       if (!wanted.has(group)) continue;
       const map = new Map<number, Tone.ToneAudioBuffer>();

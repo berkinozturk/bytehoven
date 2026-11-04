@@ -70,6 +70,11 @@ export interface SoundTheme {
   swing: number;
   /** Sample groups this theme needs (only these are loaded). */
   groups: string[];
+  /**
+   * Groups made in code instead of loaded: notes by MIDI number (pitched) or hits by name.
+   * Called once with the audio context's sample rate.
+   */
+  synth?: Record<string, (rate: number) => Map<number, Float32Array> | Record<string, Float32Array>>;
   progression: Chord[];
   tonic: Chord;
   dominant: Chord;

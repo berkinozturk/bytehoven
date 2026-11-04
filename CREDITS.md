@@ -47,10 +47,15 @@ octave labels verified with a YIN pitch detector, encoded as 96 kbps MP3.
 - The drum kit is shared with the Jazz club.
 - The vinyl crackle is generated in code (filtered noise and random clicks), not sampled.
 
+### Chiptune arcade
+
+- No samples: the pulse, triangle and noise channels and the drum hits are generated in code
+  (`src/audio/chip.ts`), our own work.
+
 ## Pixel art
 
 Every visual on stage — the hall, the organ, the curtains, the jazz club and
-its neon sign, the musicians, their instruments, the conductor and the
+its neon sign, the lo-fi room, the arcade, the musicians, their instruments, the conductor and the
 particles — is original pixel art
 drawn procedurally in code (`src/stage/`). It is part of Bytehoven and licensed
 under MIT. No third-party sprite packs are used.

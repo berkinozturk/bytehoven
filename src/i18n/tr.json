@@ -282,6 +282,44 @@
           "body": "Otto testleri çalıştırıyor. Geçen testler yumuşak bir davul geçişi ve böyle sıcak bir akorla biter. Başarısız test ise sert bir vuruş ve uyumsuz bir akor demek."
         }
       }
+    },
+    "chiptune": {
+      "app": {
+        "theme": "Chiptune salonu"
+      },
+      "instrument": {
+        "piano": "Synth",
+        "percussion": "Davul makinesi",
+        "violin": "El konsolu",
+        "flute": "Keytar",
+        "contrabass": "Üçgen bas"
+      },
+      "tour": {
+        "welcome": {
+          "title": "Atari salonuna hoş geldin",
+          "body": "Her yapay zekâ kodlama ajanı bu grupta bir müzisyen ve her biri küçük bir ses çipinin bir kanalında çalıyor. Yaptığı her şey bir melodiye dönüşüyor; ajanlarını sadece dinleyerek takip edebilirsin."
+        },
+        "clara": {
+          "title": "Clara · synth",
+          "body": "Clara kod yazıyor. Düzenlediği her dosya kare dalgada bir akor olarak duyuluyor. Adımlar arasında düşünür; düşünen müzisyen sessizce doğaçlama yapar."
+        },
+        "ines": {
+          "title": "Ines · el konsolu",
+          "body": "Ines araştırma yapıyor: web aramaları ve dokümanlar. Her araç çağrısı kare dalga kanalında kısa bir melodi. Yardımcı çağırırsa ikinci bir oyuncu katılır."
+        },
+        "mira": {
+          "title": "Mira · keytar",
+          "body": "Mira dokümantasyonu yazıyor. Bir ajan dosya okuduğunda müzisyeni sayfa çevirir ve ince, parlak bir nota çalar."
+        },
+        "bruno": {
+          "title": "Bruno · üçgen bas",
+          "body": "Bruno komutları ve build’leri çalıştırıyor. Kabuk komutları üçgen dalga kanalında ritmik bir bas nabzı gibi duyulur. Yapacak iş yoksa müzisyen uyuklar. Zzz."
+        },
+        "otto": {
+          "title": "Otto · davul makinesi",
+          "body": "Otto testleri çalıştırıyor. Geçen testler bir trampet geçişi ve böyle bir “seviye atladın” koşusuyla biter. Başarısız test ise düşen, uyumsuz bir melodi demek."
+        }
+      }
     }
   }
 }

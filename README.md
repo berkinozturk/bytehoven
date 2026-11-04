@@ -60,15 +60,17 @@ Agent dashboards make you *watch*. Sound notification tools make you *flinch* at
 
 Pick a theme from the chip in the top bar. Each one is its own band on its own stage, and the five chairs keep their roles.
 
-| | Orchestra | Jazz club | Lo-fi room |
-| --- | --- | --- | --- |
-| Stage | concert hall, organ, velvet curtains | brick wall, neon sign, string lights, candle-lit tables | a flat at night: rainy window over the city, bookshelf, a cat on the sill, friends on cushions |
-| Key and tempo | D major, 92 BPM | F major, 116 BPM, swing | C major, 76 BPM, lazy swing |
-| While agents work | a soft string pad | walking bass, ride cymbal, piano comping | boom-bap drums, bass guitar, rolled ninth chords, all through worn tape and vinyl crackle |
-| Code · research · docs · tests · commands | piano · violin · flute · timpani · double bass | piano · tenor sax · muted trumpet · drums · double bass | upright piano · jazz guitar · vibraphone · drums · bass guitar |
-| The fermata | A7 in tremolo strings → D | C7♭9 on sax, trumpet and piano, the ride swelling → Fmaj7 | G7♭9 on vibes, guitar and piano, the hi-hat ticking faster → Cmaj9 |
+| | Orchestra | Jazz club | Lo-fi room | Chiptune arcade |
+| --- | --- | --- | --- | --- |
+| Stage | concert hall, organ, velvet curtains | brick wall, neon sign, string lights, candle-lit tables | a flat at night: rainy window over the city, bookshelf, a cat on the sill, friends on cushions | arcade cabinets, a neon grid floor, players at the machines |
+| Key and tempo | D major, 92 BPM | F major, 116 BPM, swing | C major, 76 BPM, lazy swing | A minor, 140 BPM, straight |
+| While agents work | a soft string pad | walking bass, ride cymbal, piano comping | boom-bap drums, bass guitar, rolled ninth chords, all through worn tape and vinyl crackle | octave-jumping triangle bass, a dance beat on the noise channel, sixteenth-note arpeggios |
+| Code · research · docs · tests · commands | piano · violin · flute · timpani · double bass | piano · tenor sax · muted trumpet · drums · double bass | upright piano · jazz guitar · vibraphone · drums · bass guitar | pulse 50% · pulse 25% · pulse 12.5% · noise drums · triangle |
+| The fermata | A7 in tremolo strings → D | C7♭9 on sax, trumpet and piano, the ride swelling → Fmaj7 | G7♭9 on vibes, guitar and piano, the hi-hat ticking faster → Cmaj9 | E7♭9 on every channel, a snare roll speeding up → A minor and a level-up run |
 
-Chiptune is next. `?theme=jazz` or `?theme=lofi` in the URL opens a theme directly.
+`?theme=jazz`, `?theme=lofi` or `?theme=chiptune` in the URL opens a theme directly.
+
+The chiptune arcade is the one theme that is not sampled: chip music is made by the chip itself, so its pulse, triangle and noise channels are generated in code (`src/audio/chip.ts`).
 
 ## 𝄐 The fermata
 
@@ -172,7 +174,7 @@ The pop-out uses the browser's [Document Picture-in-Picture](https://developer.c
 src/
   core/      event model, the demo simulator and the live source
   audio/     engine: scheduler, harmony, the fermata; themes/ hold each band's sound
-  stage/     pixel toolkit, hall, jazz club, lo-fi room, musicians, lights, particles, camera
+  stage/     pixel toolkit, hall, jazz club, lo-fi room, arcade, musicians, lights, particles, camera
   ui/        live score strip, programme feed, tension meter, detail drawer
   i18n/      en · tr
 server/live/  read-only session reader, transcript parser, local endpoints
@@ -221,7 +223,7 @@ The script trims the silence before each attack, caps the length with a fade, pe
   - [ ] next: the conductor plans first: one tool-less `claude -p --json-schema` call returns who plays what; the plan is validated, and nothing starts if it's malformed. A dry-run shows the plan without running it
 - [x] **Themes**: a theme picker; each theme is its own band (sound) on its own stage (pixel art)
   - [x] Jazz club 🎷
-  - [ ] Chiptune arcade 👾 (synthesised, no samples)
+  - [x] Chiptune arcade 👾 (synthesised, no samples)
   - [x] Lo-fi rainy room 🌧
 - [ ] **Mixer**: which event plays which sound, instrument assignment per role
 - [ ] **"Today's symphony"**: export a session as a short video/GIF with sound, ready to share
@@ -239,7 +241,7 @@ npm run build       # production build in dist/
 
 ## 🙏 Credits
 
-Instrument samples: **VS Chamber Orchestra: Community Edition**, **VCSL** and **Virtuosity Drums** by [Versilian Studios](https://vis.versilstudios.net/vsco-community.html), all CC0. Fonts: Cormorant Garamond and Inter (SIL OFL 1.1). Everything else in the repo, including all the pixel art, is original. Full list in [CREDITS.md](CREDITS.md).
+Instrument samples: **VS Chamber Orchestra: Community Edition**, **VCSL** and **Virtuosity Drums** by [Versilian Studios](https://vis.versilstudios.net/vsco-community.html) and **FreePats** banks, all CC0. Fonts: Cormorant Garamond and Inter (SIL OFL 1.1). Everything else in the repo, including all the pixel art, is original. Full list in [CREDITS.md](CREDITS.md).
 
 ## License
 

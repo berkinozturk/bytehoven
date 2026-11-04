@@ -282,6 +282,44 @@
           "body": "Otto runs the tests. Green tests end in a soft fill and a warm chord like this one. A failure is a rimshot and a sour chord."
         }
       }
+    },
+    "chiptune": {
+      "app": {
+        "theme": "Chiptune arcade"
+      },
+      "instrument": {
+        "piano": "Synth",
+        "percussion": "Drum machine",
+        "violin": "Handheld",
+        "flute": "Keytar",
+        "contrabass": "Triangle bass"
+      },
+      "tour": {
+        "welcome": {
+          "title": "Welcome to the arcade",
+          "body": "Every AI coding agent is a musician in this band, each on its own channel of a little sound chip. Whatever it does becomes a tune, so you can follow your agents just by listening."
+        },
+        "clara": {
+          "title": "Clara · synth",
+          "body": "Clara writes code. Every file she edits lands as a chord on the square wave. Between steps she thinks, and a thinking musician quietly noodles."
+        },
+        "ines": {
+          "title": "Ines · handheld",
+          "body": "Ines does research: web searches and docs. Each tool call is a short lead line on the pulse channel. If she calls in a helper, a second player joins in."
+        },
+        "mira": {
+          "title": "Mira · keytar",
+          "body": "Mira writes the documentation. When an agent reads a file, its musician turns a page and plays a thin, bright note."
+        },
+        "bruno": {
+          "title": "Bruno · triangle bass",
+          "body": "Bruno runs commands and builds. Shell commands sound like a bass pulse on the triangle channel. When there is nothing to do, a musician dozes off. Zzz."
+        },
+        "otto": {
+          "title": "Otto · drum machine",
+          "body": "Otto runs the tests. Green tests end in a snare fill and a level-up run like this one. A failure is a falling, sour run."
+        }
+      }
     }
   }
 }

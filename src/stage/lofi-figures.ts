@@ -172,7 +172,11 @@ export class Vibraphonist extends Figure {
 export class BassGuitarist extends Figure {
   emit: Pt = [-12, -26];
   head: Pt = [0, -42];
-  constructor(look: Look) {
+  constructor(
+    look: Look,
+    /** The body's colour ramp (light → dark). */
+    private body: number[] = P.sunburst,
+  ) {
     super(64, 64, 36, 61, look);
     this.standSide = 1;
   }
@@ -212,8 +216,8 @@ export class BassGuitarist extends Figure {
     c.line(bx - 3, by - 2, cx - 23, neckY(cx - 23), 0x2a1810);
     c.line(bx - 3, by - 1, cx - 23, neckY(cx - 23) + 1, P.wood[2]);
     c.rect(cx - 27, neckY(cx - 23) - 2, 4, 3, P.black[2]);
-    c.shadedEllipse(bx + 1, by, 6, 5, P.sunburst, -0.3, -0.6);
-    c.shadedEllipse(bx + 4, by + 2, 4.5, 4, P.sunburst, -0.3, -0.6);
+    c.shadedEllipse(bx + 1, by, 6, 5, this.body, -0.3, -0.6);
+    c.shadedEllipse(bx + 4, by + 2, 4.5, 4, this.body, -0.3, -0.6);
     c.ellipse(bx + 2, by + 1, 2.5, 2, P.white[1]); // pickguard
     c.rect(bx - 2, by - 2, 3, 2, P.black[2]); // pickup
     c.hline(bx + 2, bx + 4, by + 2, P.silver[2]); // bridge

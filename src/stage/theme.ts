@@ -1,4 +1,6 @@
 import type { InstrumentId } from '../core/events';
+import { CABINETS, PLAYERS, SCREENS, drawArcade, drawArcadeAudience, drawArcadeFront } from './arcade';
+import { HandheldPlayer, Keytarist, NEON_CYAN, NEON_PINK, PadDrummer, SynthPlayer } from './chip-figures';
 import { NEON, NEON_BLUE, TABLES, drawClub, drawClubAudience, drawClubDrapes } from './club';
 import type { Look } from './figures';
 import { drawAudience, drawClosedCurtain, drawFrontDrapes, drawHall, W } from './hall';
@@ -97,4 +99,32 @@ export const lofiStage: StageTheme = {
     }
   },
   light: 0xffb8a0,
+};
+
+export const chiptuneStage: StageTheme = {
+  backdrop: drawArcade,
+  front: drawArcadeFront,
+  curtain: drawClosedCurtain,
+  audience: drawArcadeAudience,
+  glows: [
+    // the sign, the cabinet screens, the players' screens
+    [W / 2, 20, 2.6, NEON_PINK, 0.3],
+    ...CABINETS.map((x, i) => [x, 62, 1.1, SCREENS[i % SCREENS.length], 0.35] as const),
+    ...PLAYERS.map((x, i) => [x, 196, 0.7, SCREENS[(i + 2) % SCREENS.length], 0.3] as const),
+  ],
+  figure(instrument, look) {
+    switch (instrument) {
+      case 'violin':
+        return new HandheldPlayer(look);
+      case 'flute':
+        return new Keytarist(look);
+      case 'percussion':
+        return new PadDrummer(look);
+      case 'contrabass':
+        return new BassGuitarist(look, [0x9ff8ff, NEON_CYAN, 0x2aa8c8, 0x16607a, 0x0a2e3c]);
+      case 'piano':
+        return new SynthPlayer(look);
+    }
+  },
+  light: 0xd8b0ff,
 };
