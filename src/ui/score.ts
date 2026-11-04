@@ -51,6 +51,7 @@ export class Score {
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d')!;
     new ResizeObserver(() => this.resize()).observe(canvas);
+    window.addEventListener('resize', () => this.resize()); // also fires from the pop-out window
     this.resize();
     const loop = () => {
       this.draw();

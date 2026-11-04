@@ -96,6 +96,18 @@ bytehoven.sim.fire('otto', 'test_fail')   // a sour chord
 bytehoven.sim.fire('mira', 'task_done')   // a little finale
 ```
 
+### Next to Claude Code
+
+Bytehoven fits a narrow side panel: below 720px wide it switches to a compact layout (stage on top, score and programme underneath, the permission card docked at the bottom of the stage, the musician drawer as an overlay).
+
+| Where you run Claude Code | How to keep Bytehoven beside it |
+| --- | --- |
+| **Claude desktop app** | Ask Claude to open `http://127.0.0.1:5180` in its browser pane, next to the chat. |
+| **VS Code / Cursor** | Command palette → **Simple Browser: Show** → `http://127.0.0.1:5180`, then drag the tab next to the Claude Code panel. |
+| **Terminal** | In Chrome or Edge, press the **pop-out** button in the top bar. Bytehoven moves into a small always-on-top window that floats over your terminal. Close it (or press *Bring it back*) to return. |
+
+The pop-out uses the browser's [Document Picture-in-Picture](https://developer.chrome.com/docs/web-platform/document-picture-in-picture) API (Chrome / Edge 116+). The button is hidden in browsers that can't open one. Sound keeps playing from the original tab.
+
 ## 🛠 How it's built
 
 | | |
@@ -143,9 +155,16 @@ The script trims the silence before each attack, caps the length with a fade, pe
 
 - [x] **Demo mode**: Orchestra theme, five musicians, fermata, sub-agents, errors, live score
 - [x] **First-run tour**: each musician steps into the spotlight and plays, then the conductor, live score, fermata and programme are introduced
-- [ ] **Inside Claude Code**: a compact panel that lives next to your Claude Code session, plus an always-on-top mini window
+- [x] **Next to Claude Code**: a compact layout for side panels, plus an always-on-top pop-out window
 - [ ] **Live mode**: read `~/.claude/projects/**/*.jsonl` (read-only), with optional Claude Code hooks for instant permission events
+  - find live sessions via `~/.claude/sessions/<pid>.json`; desktop-app sessions don't register there, so also pick up recent transcripts whose `entrypoint` is `claude-desktop`
+  - real second chairs from `<session>/subagents/agent-*.meta.json` (type and last tool only, never message text)
+  - map sessions to musicians by working folder or tmux window name, and log a ready-to-paste mapping line for any session that matches none
+  - local server checks the `Host` and `Origin` headers, so other websites can't talk to it (DNS-rebinding protection)
+  - on page load, replay the last few events before going live, so the score never starts empty
+- [ ] **Box office**: today's tokens per musician, de-duplicated by message id, with cache reads shown separately (they're re-read context, not new work)
 - [ ] **Conducting**: hand a musician a new part (`claude -p`, prompt via stdin, narrow tool permissions, `rm` / `git push` / `curl` blocked by default)
+  - the conductor plans first: one tool-less `claude -p --json-schema` call returns who plays what; the plan is validated, and nothing starts if it's malformed. A dry-run shows the plan without running it
 - [ ] **Themes**, each with its own stage and sound: Jazz club 🎷, Chiptune arcade 👾, Lo-fi rainy room 🌧
 - [ ] **Mixer**: which event plays which sound, instrument assignment per role
 - [ ] **"Today's symphony"**: export a session as a short video/GIF with sound, ready to share

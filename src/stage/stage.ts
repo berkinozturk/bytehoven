@@ -556,6 +556,16 @@ export class Stage {
     if (v.state === 'idle' && t - v.stateSince > 5) this.setState(v, 'sleeping');
   }
 
+  /**
+   * Pixi listens for pointerup / pointermove on the main window. When the canvas is
+   * moved into another window (the pop-out), clicks need the same listeners there.
+   */
+  listenOn(win: Window) {
+    const ev = this.app.renderer.events as unknown as { _onPointerUp: EventListener; _onPointerMove: EventListener };
+    win.addEventListener('pointerup', ev._onPointerUp, true);
+    win.document.addEventListener('pointermove', ev._onPointerMove, true);
+  }
+
   private layout() {
     const sw = this.app.screen.width,
       sh = this.app.screen.height;

@@ -34,7 +34,9 @@ export class Tour {
   private root: HTMLDivElement;
   private ring: HTMLDivElement;
   private card: HTMLDivElement;
-  private steps: Step[];
+  private all: Step[];
+  /** The steps that fit this layout (narrow panels hide the side column). */
+  private steps: Step[] = [];
   private i = 0;
   private open = false;
   private raf = 0;
@@ -55,7 +57,7 @@ export class Tour {
     document.body.appendChild(this.root);
 
     const m = (id: string): Step => ({ key: id, target: { kind: 'stage', id }, focus: id, enter: () => hooks.play(id) });
-    this.steps = [
+    this.all = [
       { key: 'welcome', target: { kind: 'center' } },
       m('ines'),
       m('mira'),
@@ -79,6 +81,7 @@ export class Tour {
     this.open = true;
     this.root.hidden = false;
     this.i = 0;
+    this.steps = this.all.filter((s) => s.target.kind !== 'el' || !!document.querySelector(s.target.sel)?.getClientRects().length);
     window.addEventListener('keydown', this.keyHandler, true);
     this.show();
     const loop = () => {
