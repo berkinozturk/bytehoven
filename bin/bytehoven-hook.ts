@@ -10,10 +10,12 @@
  */
 import fs from 'node:fs';
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { commandTarget } from '../server/live/parse.ts';
 
-const LIVE_FILE = path.join(import.meta.dirname, '..', '.bytehoven', 'live.json');
+// where a running Bytehoven leaves its port and token (see server/live/start.ts)
+const LIVE_FILE = path.join(process.env.BYTEHOVEN_HOME || path.join(os.homedir(), '.bytehoven'), 'live.json');
 const WAIT_MS = 55_000; // keep below the hook timeout set by `npm run hooks`
 
 function readStdin(): Promise<string> {
