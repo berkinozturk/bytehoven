@@ -105,7 +105,7 @@ async function main() {
     }
     engine.handle(ev);
     stage.onAgentEvent(ev);
-    feed.add(ev);
+    if (!ev.seated) feed.add(ev); // the band taking its seats isn't news
     const list = recent.get(ev.agentId) ?? [];
     list.unshift(ev);
     recent.set(ev.agentId, list.slice(0, 20));
@@ -144,6 +144,7 @@ async function main() {
     $('#perm-title').textContent = t('fermata.waiting', { name: info.name });
     $('#perm-tool').textContent = ev.tool ?? '';
     $('#perm-target').textContent = ev.target ?? '';
+    $('#perm-from').textContent = ev.session ?? '';
     setTimeout(() => (perm.hidden = false), 900);
   }
   function resolve(approved: boolean) {

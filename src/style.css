@@ -1348,3 +1348,24 @@ html.live .modes [data-mode='live']::before {
     display: none;
   }
 }
+
+/* live mode: which session (project folder) a line or a request came from */
+#feed .from {
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  color: var(--dimmer);
+  background: rgba(232, 196, 124, 0.07);
+  white-space: nowrap;
+}
+
+.perm-from {
+  margin: -6px 0 10px;
+  font-size: 11px;
+  color: var(--dimmer);
+}
+
+.perm-from:empty {
+  display: none;
+}
