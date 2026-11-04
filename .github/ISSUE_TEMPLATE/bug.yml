@@ -1,0 +1,31 @@
+name: Something doesn't work
+description: A bug, a crash, silence where there should be music
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options: [Demo, Live (Claude Code), Live (Codex CLI), Live (Gemini CLI), GitHub Pages demo]
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Bytehoven (npx bytehoven --help or package.json), the agent CLI, Node, OS, browser
+      placeholder: bytehoven 0.1.0 · Claude Code 2.1 · Node 24 · macOS 15 · Chrome 140
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Browser console or terminal output
+      description: Please remove anything private first. Bytehoven never needs your prompts or code.
+      render: text

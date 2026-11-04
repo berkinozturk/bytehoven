@@ -1,0 +1,37 @@
+# Every pull request and every push to main: type-check, test and build (page + CLI).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build
+      # the package starts and serves the page
+      - name: Smoke test the bytehoven command
+        shell: bash
+        run: |
+          export BYTEHOVEN_HOME="$RUNNER_TEMP/bytehoven"
+          node cli/cli.js --no-open --port 5180 &
+          for i in $(seq 1 20); do curl -sf -o /dev/null http://127.0.0.1:5180/ && break; sleep 1; done
+          curl -sf -o /dev/null http://127.0.0.1:5180/samples/manifest.json
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5180/__live/box-office)" = 403
