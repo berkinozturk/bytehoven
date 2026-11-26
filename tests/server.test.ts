@@ -227,3 +227,26 @@ test('another program on this machine, even one that fakes the page origin, gets
     await s.close();
   }
 });
+
+test('the same request from two installed hooks (plugin and npx) is one fermata, and both get the answer', async () => {
+  const s = await start();
+  const page = listen(s.port, s.host);
+  try {
+    await page.ready;
+    await page.waitFor('hello');
+    const ask = { event: 'PermissionRequest', session: 'sess-1', tool: 'Bash', target: 'git' };
+    const h = { host: s.host, 'x-bytehoven-token': TOKEN };
+    const one = request(s.port, 'POST', '/__live/hook', h, ask);
+    const two = request(s.port, 'POST', '/__live/hook', h, ask);
+    await page.waitFor('permission');
+    await new Promise((r) => setTimeout(r, 100));
+    assert.equal(page.msgs.filter((m) => m.type === 'permission').length, 1);
+    const id = (page.msgs.find((m) => m.type === 'permission') as { id: number }).id;
+    await request(s.port, 'POST', '/__live/decision', { host: s.host, origin: `http://${s.host}`, 'x-bytehoven-key': TOKEN }, { id, approved: true });
+    assert.deepEqual(JSON.parse((await one).body), { decision: 'allow' });
+    assert.deepEqual(JSON.parse((await two).body), { decision: 'allow' });
+  } finally {
+    page.close();
+    await s.close();
+  }
+});

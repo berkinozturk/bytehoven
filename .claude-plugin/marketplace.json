@@ -1,0 +1,15 @@
+{
+  "name": "bytehoven",
+  "owner": {
+    "name": "Berkin Öztürk",
+    "url": "https://github.com/berkinozturk"
+  },
+  "description": "Bytehoven: hear your AI coding agents as a pixel-art orchestra.",
+  "plugins": [
+    {
+      "name": "bytehoven",
+      "source": "./plugin",
+      "description": "Hear what your agents are doing: open Bytehoven, and answer permission prompts from its Approve button (the fermata)."
+    }
+  ]
+}

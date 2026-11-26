@@ -50,7 +50,8 @@ const RECENT = 20;
 
 interface Waiting {
   permission: Permission;
-  res: ServerResponse;
+  /** Hook calls waiting on this request (two when the hook is installed twice: plugin and npx). */
+  res: ServerResponse[];
   timer: NodeJS.Timeout;
 }
 
@@ -179,9 +180,17 @@ export class LiveHub {
     if (b.event !== 'PermissionRequest' || !session || !tool) return json(res, { decision: null });
     // Nobody is looking at Bytehoven: let Claude Code ask as usual, right away.
     if (this.pages.size === 0) return json(res, { decision: null });
-    const permission: Permission = { id: this.nextId++, session, folder: short(b.folder, 60), tool, target: short(b.target, 60), agent: short(b.agent) };
+    const target = short(b.target, 60);
+    const agent = short(b.agent);
+    // the same request again (the hook installed twice): wait on the same fermata
+    const twin = [...this.waiting.values()].find((x) => x.permission.session === session && x.permission.tool === tool && x.permission.target === target && x.permission.agent === agent);
+    if (twin) {
+      twin.res.push(res);
+      return;
+    }
+    const permission: Permission = { id: this.nextId++, session, folder: short(b.folder, 60), tool, target, agent };
     const timer = setTimeout(() => this.answer(w, null), this.timeoutMs);
-    const w: Waiting = { permission, res, timer };
+    const w: Waiting = { permission, res: [res], timer };
     this.waiting.set(permission.id, w);
     // If Claude Code gives up on the hook (answered in its own dialog), the fermata ends too.
     req.socket.once('close', () => this.waiting.has(permission.id) && this.answer(w, null));
@@ -191,7 +200,7 @@ export class LiveHub {
   private answer(w: Waiting, decision: 'allow' | 'deny' | null) {
     if (!this.waiting.delete(w.permission.id)) return;
     clearTimeout(w.timer);
-    if (!w.res.writableEnded) json(w.res, { decision });
+    for (const r of w.res) if (!r.writableEnded) json(r, { decision });
     this.send({ type: 'permission_end', id: w.permission.id, approved: decision === null ? undefined : decision === 'allow' });
   }
 
