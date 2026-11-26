@@ -10,6 +10,8 @@ And when one of them needs you, the whole hall holds its breath.
 
 ![Bytehoven: the orchestra playing while agents work, and a second violinist walking on stage as a sub-agent joins](docs/media/orchestra.gif)
 
+**[▶ Watch it with sound (45 s)](docs/media/bytehoven-demo.mp4)**: a test fails, a sub-agent joins, Claude asks for permission and the hall holds its breath until you approve.
+
 [▶ Live demo](https://berkinozturk.github.io/bytehoven/) · [Run it](#-run-it) · [What you hear](#-what-you-hear) · [The fermata](#-the-fermata) · [How it's built](#-how-its-built) · [Roadmap](#-roadmap)
 
 **English** · Türkçe arayüz dahil
