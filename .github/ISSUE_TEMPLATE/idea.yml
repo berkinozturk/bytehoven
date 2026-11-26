@@ -1,0 +1,14 @@
+name: An idea
+description: A theme, a sound, an agent to support, anything
+labels: [idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: When would it help?

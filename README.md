@@ -296,8 +296,10 @@ Issues and ideas are very welcome, especially new themes, instruments and musici
 ```bash
 npm run typecheck   # strict TypeScript
 npm test            # node --test, no extra dependencies
-npm run build       # production build in dist/
+npm run build       # the page (dist/) and the bytehoven command (cli/)
 ```
+
+Every pull request runs the same checks on Linux, macOS and Windows. Releases go to npm from GitHub Actions with [trusted publishing](https://docs.npmjs.com/trusted-publishers): no npm token is stored anywhere, and each version shows where it was built.
 
 ## 🙏 Credits
 

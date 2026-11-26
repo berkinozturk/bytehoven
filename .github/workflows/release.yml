@@ -1,0 +1,33 @@
+# Publishes to npm when a GitHub release is published (tag vX.Y.Z), with npm trusted
+# publishing: GitHub proves who is publishing (OIDC), so no npm token is stored
+# anywhere, and npm shows where each version was built (provenance).
+#
+# One-time setup on npmjs.com, after the first version was published by hand:
+#   package → Settings → Trusted Publisher → GitHub Actions
+#   owner: berkinozturk, repository: bytehoven, workflow: release.yml
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # trusted publishing needs npm 11.5.1+, which ships with Node 24
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm test
+      - name: The tag matches package.json
+        run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+      # prepack builds the page and the CLI
+      - run: npm publish --provenance --access public
