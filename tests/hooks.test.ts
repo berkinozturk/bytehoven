@@ -29,3 +29,27 @@ test('installing twice adds the hook once, and removing takes it out, wherever t
     delete process.env.CLAUDE_CONFIG_DIR;
   }
 });
+
+test('the Codex hook goes into Codex hooks.json, once, and comes out again', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bytehoven-codex-'));
+  process.env.CODEX_HOME = dir;
+  const file = path.join(dir, 'hooks.json');
+  fs.writeFileSync(file, JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: 'command', command: 'notify' }] }] } }));
+  const script = path.join(dir, 'hook.mjs');
+  const log = console.log;
+  console.log = () => {};
+  try {
+    setupHook('write', script, how, 'codex');
+    setupHook('write', script, how, 'codex');
+    let s = JSON.parse(fs.readFileSync(file, 'utf8'));
+    assert.equal(s.hooks.PermissionRequest.length, 1);
+    assert.match(s.hooks.PermissionRequest[0].hooks[0].command, /hook\.mjs" --codex$/);
+    assert.deepEqual(s.hooks.Stop, [{ hooks: [{ type: 'command', command: 'notify' }] }], "Codex's other hooks stay");
+    setupHook('remove', script, how, 'codex');
+    s = JSON.parse(fs.readFileSync(file, 'utf8'));
+    assert.equal(s.hooks.PermissionRequest, undefined);
+  } finally {
+    console.log = log;
+    delete process.env.CODEX_HOME;
+  }
+});

@@ -1,7 +1,7 @@
 /**
- * Bytehoven's Claude Code hook (PermissionRequest).
+ * Bytehoven's permission hook (PermissionRequest), for Claude Code and Codex CLI.
  *
- * Claude Code runs this when a tool needs your permission. It forwards only the
+ * The agent runs this when a tool needs your permission. It forwards only the
  * session id, the tool name and a short target (a file's base name or a command's
  * first word) to Bytehoven on 127.0.0.1, then waits for Approve / Deny there.
  *
@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import { commandTarget } from '../server/live/parse.ts';
+import { permissionBody } from '../server/live/permission.ts';
 
 // where a running Bytehoven leaves its port and token (see server/live/start.ts)
 const LIVE_FILE = path.join(process.env.BYTEHOVEN_HOME || path.join(os.homedir(), '.bytehoven'), 'live.json');
@@ -25,13 +25,6 @@ function readStdin(): Promise<string> {
     process.stdin.on('data', (c) => (data += c));
     process.stdin.on('end', () => resolve(data));
   });
-}
-
-function targetOf(input: Record<string, unknown>): string | undefined {
-  const file = input.file_path ?? input.notebook_path;
-  if (typeof file === 'string') return path.basename(file);
-  if (typeof input.command === 'string') return commandTarget(input.command);
-  return undefined;
 }
 
 async function main() {
@@ -47,16 +40,9 @@ async function main() {
   } catch {
     return;
   }
-  if (hook.hook_event_name !== 'PermissionRequest') return;
-  const input = (hook.tool_input && typeof hook.tool_input === 'object' ? hook.tool_input : {}) as Record<string, unknown>;
-  const body = JSON.stringify({
-    event: 'PermissionRequest',
-    session: hook.session_id,
-    folder: typeof hook.cwd === 'string' ? path.basename(hook.cwd) : undefined,
-    agent: hook.agent_id,
-    tool: hook.tool_name,
-    target: targetOf(input),
-  });
+  // `--codex`: installed for Codex CLI (npx bytehoven hooks --codex)
+  const body = permissionBody(hook, process.argv.includes('--codex'));
+  if (!body) return;
 
   const decision = await new Promise<string | null>((resolve) => {
     const req = http.request(
@@ -82,7 +68,7 @@ async function main() {
     );
     req.on('timeout', () => req.destroy());
     req.on('error', () => resolve(null));
-    req.end(body);
+    req.end(JSON.stringify(body));
   });
 
   if (decision === 'allow' || decision === 'deny') {

@@ -7,6 +7,8 @@
  *   npx bytehoven --no-open         don't open the browser
  *   npx bytehoven hooks [--write | --remove]
  *                                   the fermata: let Bytehoven answer Claude Code's permission prompts
+ *   npx bytehoven hooks --codex [--write | --remove]
+ *                                   the same for OpenAI Codex CLI
  *
  * Built into cli/cli.js (see vite.cli.config.ts); the page itself is dist/.
  */
@@ -28,9 +30,11 @@ if (args[0] === 'hooks') {
     fs.mkdirSync(bytehovenHome(), { recursive: true, mode: 0o700 });
     fs.copyFileSync(path.join(here, 'hook.js'), script);
   }
-  process.exitCode = setupHook(mode, script, { write: 'npx bytehoven hooks --write', remove: 'npx bytehoven hooks --remove' });
+  const codex = args.includes('--codex');
+  const flag = codex ? ' --codex' : '';
+  process.exitCode = setupHook(mode, script, { write: `npx bytehoven hooks${flag} --write`, remove: `npx bytehoven hooks${flag} --remove` }, codex ? 'codex' : 'claude');
 } else if (args.includes('--help') || args.includes('-h')) {
-  console.log('Usage: bytehoven [--port N] [--no-open]\n       bytehoven hooks [--write | --remove]');
+  console.log('Usage: bytehoven [--port N] [--no-open]\n       bytehoven hooks [--codex] [--write | --remove]');
 } else {
   const at = args.indexOf('--port');
   const port = at >= 0 ? Number(args[at + 1]) : 5180;
